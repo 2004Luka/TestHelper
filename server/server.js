@@ -23,16 +23,39 @@ app.use(helmet());
 // Prevent NoSQL injection
 app.use(mongoSanitize());
 
-// Strict CORS config
+// Dynamic & flexible CORS config to support Netlify, Render, and Localhost
+const getOrigins = () => {
+  if (!process.env.CLIENT_URL) return ['http://localhost:5173'];
+  return process.env.CLIENT_URL.split(',').map((url) => url.trim().replace(/\/$/, ''));
+};
+
 app.use(cors({ 
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. server-to-server, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    const cleanOrigin = origin.replace(/\/$/, '');
+    const allowed = getOrigins();
+
+    if (
+      allowed.includes('*') ||
+      allowed.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.netlify.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1')
+    ) {
+      return callback(null, cleanOrigin);
+    }
+    
+    return callback(new Error(`CORS policy blocked request from origin: ${origin}`));
+  },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
 app.use(morgan('dev'));
-// Limit payload size to 1MB (was 10MB) to mitigate DOS
+// Limit payload size to 1MB to mitigate DOS
 app.use(express.json({ limit: '1mb' }));
 
 // Rate Limiting
@@ -45,13 +68,16 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// API Routes
+// API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
 app.use('/api/quizzes', quizRoutes);
+app.use('/quizzes', quizRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/submissions', submissionRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/comments', commentRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok' }));
 
 // Centralized error handler
 app.use(errorHandler);
