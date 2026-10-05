@@ -4,7 +4,7 @@ const questionSchema = new mongoose.Schema({
   questionText: { type: String, required: true },
   type: { type: String, enum: ['mcq', 'truefalse', 'fillin'], default: 'mcq' },
   options: [String],
-  correctAnswer: { type: String, required: true },
+  correctAnswer: { type: String, default: '' },
 });
 
 const quizSchema = new mongoose.Schema(

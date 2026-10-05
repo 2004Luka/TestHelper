@@ -1,22 +1,24 @@
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Home() {
+  const { t } = useLanguage();
+
   return (
     <div className="page">
       <div className="hero">
         <h1 className="hero-title">
-          Word to Quiz <span className="gradient-text">in Seconds</span>
+          {t('homeTitle')}
         </h1>
         <p className="hero-subtitle">
-          Upload your Word document test files, auto-generate shareable quiz links,
-          and let students take tests online with instant auto-grading.
+          {t('homeSubtitle')}
         </p>
         <div className="hero-actions">
           <Link to="/create" className="btn btn-primary btn-lg">
-            ✨ Create Quiz
+            {t('homeGetStarted')}
           </Link>
           <Link to="/dashboard" className="btn btn-secondary btn-lg">
-            📊 My Quizzes
+            📊 {t('navDashboard')}
           </Link>
         </div>
       </div>
@@ -24,55 +26,49 @@ export default function Home() {
       <div className="feature-grid">
         <div className="card feature-card">
           <div className="feature-icon">📄</div>
-          <div className="feature-title">Upload Word Files</div>
+          <div className="feature-title">{t('feature1Title')}</div>
           <div className="feature-desc">
-            Upload your test document and answer key as .docx files. 
-            The parser extracts questions, options, and correct answers automatically.
+            {t('feature1Desc')}
           </div>
         </div>
 
         <div className="card feature-card">
           <div className="feature-icon">🔗</div>
-          <div className="feature-title">Share Link</div>
+          <div className="feature-title">{t('feature2Title')}</div>
           <div className="feature-desc">
-            Get a unique shareable link for each quiz. Send it to your students 
-            and they can take the test from any device — no sign-up needed.
+            {t('feature2Desc')}
           </div>
         </div>
 
         <div className="card feature-card">
           <div className="feature-icon">⚡</div>
-          <div className="feature-title">Instant Grading</div>
+          <div className="feature-title">{t('feature3Title')}</div>
           <div className="feature-desc">
-            Tests are graded automatically on submission. Students see their score, 
-            correct answers, and can discuss results with the teacher.
+            {t('feature3Desc')}
           </div>
         </div>
 
         <div className="card feature-card">
           <div className="feature-icon">📊</div>
-          <div className="feature-title">Live Dashboard</div>
+          <div className="feature-title">{t('feature4Title')}</div>
           <div className="feature-desc">
-            Track every student's name, score, and attempt count in real-time. 
-            Export results as CSV for your records.
+            {t('feature4Desc')}
           </div>
         </div>
 
         <div className="card feature-card">
           <div className="feature-icon">💬</div>
-          <div className="feature-title">Discussion</div>
+          <div className="feature-title">{t('discussionTitle')}</div>
           <div className="feature-desc">
-            Teachers and students can discuss corrected tests in a built-in 
-            comment thread — review mistakes together.
+            {t('discussionSub')}
           </div>
         </div>
 
         <div className="card feature-card">
           <div className="feature-icon">🎛️</div>
-          <div className="feature-title">Configurable</div>
+          <div className="feature-title">{t('showScoreImmediately')}</div>
           <div className="feature-desc">
-            Set time limits, shuffle questions, control score visibility, 
-            and disable quiz links when you're done.
+            {t('homeSubtitle')}
           </div>
         </div>
       </div>

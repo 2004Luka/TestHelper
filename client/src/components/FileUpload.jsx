@@ -1,10 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
-/**
- * Drag-and-drop file upload zone.
- * Props: label, accept, file, onFile
- */
 export default function FileUpload({ label, accept = '.docx', file, onFile }) {
+  const { t } = useLanguage();
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef(null);
 
@@ -49,13 +47,18 @@ export default function FileUpload({ label, accept = '.docx', file, onFile }) {
       <div className="upload-icon">{file ? '✅' : '📄'}</div>
       <div className="upload-text">
         {file ? (
-          <div className="upload-filename">📎 {file.name}</div>
+          <div>
+            <div className="upload-filename">📎 {file.name}</div>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              {t('dropzoneChange')}
+            </span>
+          </div>
         ) : (
           <>
-            <strong>Click or drag</strong> to upload {label}
+            <strong>{t('dropzoneText')}</strong>
             <br />
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Supports .docx files
+              {t('supportedFormat')}
             </span>
           </>
         )}

@@ -1,24 +1,24 @@
-/**
- * Quiz settings panel for teachers.
- * Props: settings, onChange
- */
+import { useLanguage } from '../context/LanguageContext';
+
 export default function QuizSettings({ settings, onChange }) {
+  const { t } = useLanguage();
+
   const update = (key, value) => {
     onChange({ ...settings, [key]: value });
   };
 
   return (
     <div className="card" style={{ marginTop: 20 }}>
-      <div className="card-title" style={{ marginBottom: 16 }}>⚙️ Quiz Settings</div>
+      <div className="card-title" style={{ marginBottom: 16 }}>⚙️ {t('quizTitleLabel')} {t('navHome') === 'Home' ? 'Settings' : 'პარამეტრები'}</div>
 
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">Time Limit (minutes)</label>
+          <label className="form-label">{t('timeLimit')}</label>
           <input
             type="number"
             className="form-input"
             min="0"
-            placeholder="0 = No limit"
+            placeholder={t('noTimeLimit')}
             value={settings.timeLimit || ''}
             onChange={(e) => update('timeLimit', parseInt(e.target.value) || 0)}
           />
@@ -31,7 +31,7 @@ export default function QuizSettings({ settings, onChange }) {
               checked={settings.shuffleQuestions || false}
               onChange={(e) => update('shuffleQuestions', e.target.checked)}
             />
-            <span>Shuffle question order</span>
+            <span>{t('shuffleQuestions')}</span>
           </label>
         </div>
 
@@ -42,7 +42,7 @@ export default function QuizSettings({ settings, onChange }) {
               checked={settings.showScoreImmediately ?? true}
               onChange={(e) => update('showScoreImmediately', e.target.checked)}
             />
-            <span>Show score immediately</span>
+            <span>{t('showScoreImmediately')}</span>
           </label>
         </div>
       </div>

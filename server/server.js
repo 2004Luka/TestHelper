@@ -13,6 +13,10 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
+// ⚠️ Server returned error status 500: Internal Server Erpr i dont want to mix up developement and deployement server and client link connections i got this on submission fix it like when i upload to deployment it will still work as well as in development
+
+
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -29,7 +33,7 @@ const getOrigins = () => {
   return process.env.CLIENT_URL.split(',').map((url) => url.trim().replace(/\/$/, ''));
 };
 
-app.use(cors({ 
+app.use(cors({
   origin: (origin, callback) => {
     // Allow non-browser requests (e.g. server-to-server, curl, Postman)
     if (!origin) return callback(null, true);
@@ -46,7 +50,7 @@ app.use(cors({
     ) {
       return callback(null, cleanOrigin);
     }
-    
+
     return callback(new Error(`CORS policy blocked request from origin: ${origin}`));
   },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],

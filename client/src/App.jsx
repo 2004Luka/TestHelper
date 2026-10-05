@@ -5,11 +5,29 @@ import TakeQuiz from './pages/TakeQuiz';
 import Dashboard from './pages/Dashboard';
 import QuizDetail from './pages/QuizDetail';
 
+import { useLanguage } from './context/LanguageContext';
+
 function Navbar() {
   const { pathname } = useLocation();
+  const { lang, toggleLanguage, t } = useLanguage();
 
-  // Hide navbar on student quiz page for cleaner experience
-  if (pathname.startsWith('/quiz/')) return null;
+  // Show language switcher even on student quiz page
+  const isStudentQuiz = pathname.startsWith('/quiz/');
+
+  if (isStudentQuiz) {
+    return (
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 100 }}>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={toggleLanguage}
+          title="Switch Language / ენის შეცვლა"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
+        >
+          {lang === 'ka' ? '🇬🇪 ქართული' : '🇺🇸 English'}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <nav className="navbar">
@@ -20,14 +38,22 @@ function Navbar() {
         </Link>
         <div className="navbar-links">
           <Link to="/" className={pathname === '/' ? 'active' : ''}>
-            Home
+            {t('navHome')}
           </Link>
           <Link to="/create" className={pathname === '/create' ? 'active' : ''}>
-            Create
+            {t('navCreate')}
           </Link>
           <Link to="/dashboard" className={pathname.startsWith('/dashboard') ? 'active' : ''}>
-            Dashboard
+            {t('navDashboard')}
           </Link>
+
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={toggleLanguage}
+            style={{ marginLeft: 8, padding: '4px 12px', fontSize: '0.85rem' }}
+          >
+            {lang === 'ka' ? '🇬🇪 ქართული' : '🇺🇸 English'}
+          </button>
         </div>
       </div>
     </nav>

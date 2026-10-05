@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
-/**
- * Discussion thread for a quiz. Teacher and students can comment.
- * Props: shareCode, currentUser, currentRole ('teacher' | 'student')
- */
 export default function Discussion({ shareCode, currentUser, currentRole }) {
+  const { t } = useLanguage();
   const [comments, setComments] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,12 +20,10 @@ export default function Discussion({ shareCode, currentUser, currentRole }) {
 
   useEffect(() => {
     loadComments();
-    // Poll every 10s for new comments
     const interval = setInterval(loadComments, 10000);
     return () => clearInterval(interval);
   }, [shareCode]);
 
-  // Auto-scroll to bottom on new comments
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -66,13 +62,13 @@ export default function Discussion({ shareCode, currentUser, currentRole }) {
 
   return (
     <div className="discussion-container">
-      <div className="section-title">💬 Discussion</div>
+      <div className="section-title">{t('discussionTitle')}</div>
 
       <div className="comment-list" ref={listRef}>
         {comments.length === 0 ? (
           <div className="empty-state" style={{ padding: '24px' }}>
             <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>💬</div>
-            <div>No comments yet. Start the discussion!</div>
+            <div>{t('noComments')}</div>
           </div>
         ) : (
           comments.map((c) => (
@@ -96,13 +92,13 @@ export default function Discussion({ shareCode, currentUser, currentRole }) {
       <form className="comment-form" onSubmit={handleSend}>
         <input
           className="form-input"
-          placeholder="Type a message..."
+          placeholder={t('addCommentPlaceholder')}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           disabled={loading}
         />
         <button className="btn btn-primary" type="submit" disabled={loading || !message.trim()}>
-          Send
+          {t('postCommentBtn')}
         </button>
       </form>
     </div>

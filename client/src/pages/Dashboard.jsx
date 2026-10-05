@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +46,7 @@ export default function Dashboard() {
       <div className="page">
         <div className="loading">
           <div className="spinner" />
-          Loading quizzes...
+          {t('btnProcessing')}
         </div>
       </div>
     );
@@ -54,23 +56,23 @@ export default function Dashboard() {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="page-title">My Quizzes</h1>
-          <p className="page-subtitle">Manage all your quizzes and view student results.</p>
+          <h1 className="page-title">{t('dashboardTitle')}</h1>
+          <p className="page-subtitle">{t('dashboardSub')}</p>
         </div>
         <Link to="/create" className="btn btn-primary">
-          ✨ Create New
+          ✨ {t('navCreate')}
         </Link>
       </div>
 
       {quizzes.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">📋</div>
-          <h3>No quizzes yet</h3>
+          <h3>{t('noQuizzesFound')}</h3>
           <p style={{ color: 'var(--text-secondary)', marginTop: 8, marginBottom: 20 }}>
-            Create your first quiz by uploading a Word document.
+            {t('createSubtitle')}
           </p>
           <Link to="/create" className="btn btn-primary">
-            Create Quiz
+            {t('navCreate')}
           </Link>
         </div>
       ) : (
@@ -86,28 +88,28 @@ export default function Dashboard() {
                     {q.title}
                   </Link>
                   <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <span>📝 {q.questions.length} questions</span>
-                    <span>👥 {q.submissionCount} submissions</span>
+                    <span>📝 {q.questions.length} {t('questionsText')}</span>
+                    <span>👥 {q.submissionCount} {t('totalSubmissions')}</span>
                     <span>🔑 {q.shareCode}</span>
                     <span>📅 {new Date(q.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span className={`badge ${q.isActive ? 'badge-active' : 'badge-inactive'}`}>
-                    {q.isActive ? '● Active' : '● Disabled'}
+                    {q.isActive ? `● ${t('quizStatusActive')}` : `● ${t('quizStatusClosed')}`}
                   </span>
                 </div>
               </div>
 
               <div className="btn-group">
                 <Link to={`/dashboard/${q.shareCode}`} className="btn btn-secondary btn-sm">
-                  📊 Results
+                  📊 {t('studentResults')}
                 </Link>
                 <button
                   className={`btn btn-sm ${q.isActive ? 'btn-danger' : 'btn-success'}`}
                   onClick={() => handleToggle(q.shareCode)}
                 >
-                  {q.isActive ? '🔒 Disable Link' : '🔓 Enable Link'}
+                  {q.isActive ? t('finishQuizBtn') : t('reopenQuizBtn')}
                 </button>
                 <button
                   className="btn btn-secondary btn-sm"
@@ -117,7 +119,7 @@ export default function Dashboard() {
                     );
                   }}
                 >
-                  📋 Copy Link
+                  {t('btnCopy')}
                 </button>
                 <button
                   className="btn btn-danger btn-sm"

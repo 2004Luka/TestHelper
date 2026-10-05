@@ -35,9 +35,9 @@ export const submitQuiz = async (req, res, next) => {
       const question = quiz.questions[ans.questionIndex];
       if (!question) return { ...ans, isCorrect: false };
 
-      const isCorrect =
-        question.correctAnswer.toLowerCase().trim() ===
-        (ans.selectedAnswer || '').toLowerCase().trim();
+      const qAns = (question.correctAnswer || '').toLowerCase().trim();
+      const sAns = (ans.selectedAnswer || '').toLowerCase().trim();
+      const isCorrect = qAns !== '' && qAns === sAns;
 
       if (isCorrect) score++;
       return { ...ans, isCorrect };

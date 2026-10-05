@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import Discussion from '../components/Discussion';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function QuizDetail() {
   const { shareCode } = useParams();
+  const { t } = useLanguage();
   const [quiz, setQuiz] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,6 @@ export default function QuizDetail() {
       setLoading(false);
     };
     load();
-    // Refresh submissions every 15s
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/submissions/${shareCode}`);
@@ -53,7 +54,7 @@ export default function QuizDetail() {
       <div className="page">
         <div className="loading">
           <div className="spinner" />
-          Loading quiz details...
+          {t('btnProcessing')}
         </div>
       </div>
     );
@@ -64,13 +65,12 @@ export default function QuizDetail() {
       <div className="page">
         <div className="empty-state">
           <div className="empty-state-icon">🚫</div>
-          <h3>Quiz not found</h3>
+          <h3>{t('noQuizzesFound')}</h3>
         </div>
       </div>
     );
   }
 
-  // Calculate stats
   const totalSubs = submissions.length;
   const uniqueStudents = new Set(submissions.map((s) => s.studentName)).size;
   const avgScore = totalSubs > 0
@@ -83,28 +83,28 @@ export default function QuizDetail() {
   return (
     <div className="page">
       <Link to="/dashboard" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-        ← Back to Dashboard
+        ← {t('navDashboard')}
       </Link>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 16 }}>
         <div>
           <h1 className="page-title">{quiz.title}</h1>
           <div style={{ display: 'flex', gap: 12, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <span>📝 {quiz.questions.length} questions</span>
+            <span>📝 {quiz.questions.length} {t('questionsText')}</span>
             <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
-              {quiz.isActive ? '● Active' : '● Disabled'}
+              {quiz.isActive ? `● ${t('quizStatusActive')}` : `● ${t('quizStatusClosed')}`}
             </span>
           </div>
         </div>
         <div className="btn-group">
           <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
-            {copied ? '✓ Copied!' : '📋 Copy Link'}
+            {copied ? t('btnCopied') : t('btnCopy')}
           </button>
           <button
             className={`btn btn-sm ${quiz.isActive ? 'btn-danger' : 'btn-success'}`}
             onClick={handleToggle}
           >
-            {quiz.isActive ? '🔒 Disable' : '🔓 Enable'}
+            {quiz.isActive ? t('finishQuizBtn') : t('reopenQuizBtn')}
           </button>
           <a
             href={`/api/submissions/${shareCode}/export`}
@@ -124,40 +124,40 @@ export default function QuizDetail() {
       <div className="result-summary" style={{ marginTop: 24 }}>
         <div className="result-stat">
           <div className="result-stat-value">{totalSubs}</div>
-          <div className="result-stat-label">Total Submissions</div>
+          <div className="result-stat-label">{t('totalSubmissions')}</div>
         </div>
         <div className="result-stat">
           <div className="result-stat-value">{uniqueStudents}</div>
-          <div className="result-stat-label">Unique Students</div>
+          <div className="result-stat-label">{t('studentName')}</div>
         </div>
         <div className="result-stat">
           <div className="result-stat-value">{avgScore}%</div>
-          <div className="result-stat-label">Average Score</div>
+          <div className="result-stat-label">{t('score')} (Avg)</div>
         </div>
         <div className="result-stat">
           <div className="result-stat-value">{highestScore}%</div>
-          <div className="result-stat-label">Highest Score</div>
+          <div className="result-stat-label">{t('score')} (Max)</div>
         </div>
       </div>
 
       {/* Submissions Table */}
-      <div className="section-title" style={{ marginTop: 32 }}>👥 Student Submissions</div>
+      <div className="section-title" style={{ marginTop: 32 }}>👥 {t('studentResults')}</div>
 
       {submissions.length === 0 ? (
         <div className="empty-state" style={{ padding: 40 }}>
           <div className="empty-state-icon">👥</div>
-          <p>No submissions yet. Share the link with your students!</p>
+          <p>{t('createdSub')}</p>
         </div>
       ) : (
         <div className="table-container">
           <table>
             <thead>
               <tr>
-                <th>Student Name</th>
-                <th>Score</th>
-                <th>Percentage</th>
-                <th>Attempt</th>
-                <th>Submitted</th>
+                <th>{t('studentName')}</th>
+                <th>{t('score')}</th>
+                <th>{t('percentage')}</th>
+                <th>{t('attemptsCount')}</th>
+                <th>{t('dateSubmitted')}</th>
               </tr>
             </thead>
             <tbody>

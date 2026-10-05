@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/client';
 import Discussion from '../components/Discussion';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function TakeQuiz() {
   const { shareCode } = useParams();
+  const { lang, t } = useLanguage();
   const [quiz, setQuiz] = useState(null);
   const [studentName, setStudentName] = useState('');
   const [started, setStarted] = useState(false);
@@ -16,7 +18,9 @@ export default function TakeQuiz() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [displayQuestions, setDisplayQuestions] = useState([]);
 
-  const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const letters = lang === 'ka' 
+    ? ['ა', 'ბ', 'გ', 'დ', 'ე', 'ვ']
+    : ['A', 'B', 'C', 'D', 'E', 'F'];
 
   // Load quiz
   useEffect(() => {
@@ -47,14 +51,12 @@ export default function TakeQuiz() {
     if (!studentName.trim()) return;
     setStarted(true);
 
-    // Prepare questions (with original indices preserved)
     let qs = quiz.questions.map((q, i) => ({ ...q, originalIndex: i }));
     if (quiz.settings?.shuffleQuestions) {
       qs = shuffleArray(qs);
     }
     setDisplayQuestions(qs);
 
-    // Start timer if set
     if (quiz.settings?.timeLimit > 0) {
       setTimeLeft(quiz.settings.timeLimit * 60);
     }
@@ -68,7 +70,7 @@ export default function TakeQuiz() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleSubmit(); // Auto-submit when time runs out
+          handleSubmit();
           return 0;
         }
         return prev - 1;
@@ -108,19 +110,17 @@ export default function TakeQuiz() {
     setSubmitting(false);
   }, [answers, displayQuestions, shareCode, studentName]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="page">
         <div className="loading">
           <div className="spinner" />
-          Loading quiz...
+          {t('btnProcessing')}
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error && !quiz) {
     return (
       <div className="page">
@@ -128,52 +128,51 @@ export default function TakeQuiz() {
           <div className="empty-state-icon">🚫</div>
           <h2>{error}</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
-            This quiz may have been disabled or doesn't exist.
+            {t('quizClosedMsg')}
           </p>
         </div>
       </div>
     );
   }
 
-  // RESULTS VIEW — shown after submission
   if (result) {
     return (
       <div className="page">
-        <h1 className="page-title">Quiz Results</h1>
+        <h1 className="page-title">{t('scoreText')}</h1>
         <p className="page-subtitle">
-          {result.studentName} — Attempt #{result.attemptNumber}
+          {result.studentName} — {t('attemptsCount')}{result.attemptNumber}
         </p>
 
         <div className="score-circle">
           <span className="score-value">{result.percentage}%</span>
-          <span className="score-label">Score</span>
+          <span className="score-label">{t('score')}</span>
         </div>
 
         <div className="result-summary">
           <div className="result-stat">
             <div className="result-stat-value">{result.score}</div>
-            <div className="result-stat-label">Correct</div>
+            <div className="result-stat-label">{t('correct')}</div>
           </div>
           <div className="result-stat">
             <div className="result-stat-value">{result.totalQuestions - result.score}</div>
-            <div className="result-stat-label">Incorrect</div>
+            <div className="result-stat-label">{t('incorrect')}</div>
           </div>
           <div className="result-stat">
             <div className="result-stat-value">{result.totalQuestions}</div>
-            <div className="result-stat-label">Total</div>
+            <div className="result-stat-label">{t('questionsText')}</div>
           </div>
           <div className="result-stat">
             <div className="result-stat-value">#{result.attemptNumber}</div>
-            <div className="result-stat-label">Attempt</div>
+            <div className="result-stat-label">{t('attemptsCount')}</div>
           </div>
         </div>
 
-        <div className="section-title">📋 Answer Review</div>
+        <div className="section-title">📋 {t('studentResults')}</div>
 
         {result.questions.map((q, i) => (
           <div key={i} className="question-card">
             <div className="question-number">
-              Question {i + 1}
+              {t('questionsText')} {i + 1}
               <span
                 style={{
                   marginLeft: 8,
@@ -182,7 +181,7 @@ export default function TakeQuiz() {
                   fontWeight: 600,
                 }}
               >
-                {q.isCorrect ? '✓ Correct' : '✗ Incorrect'}
+                {q.isCorrect ? `✓ ${t('correct')}` : `✗ ${t('incorrect')}`}
               </span>
             </div>
             <div className="question-text">{q.questionText}</div>
@@ -196,16 +195,16 @@ export default function TakeQuiz() {
 
                   return (
                     <div key={j} className={cls}>
-                      <span className="option-letter">{letters[j]}</span>
+                      <span className="option-letter">{letters[j] || (j + 1)}</span>
                       <span>{opt}</span>
                       {opt === q.correctAnswer && (
                         <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--success)' }}>
-                          ✓ Correct answer
+                          ✓ {t('correctAnswerIs')}
                         </span>
                       )}
                       {opt === q.studentAnswer && opt !== q.correctAnswer && (
                         <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--error)' }}>
-                          ✗ Your answer
+                          ✗ {t('yourAnswer')}
                         </span>
                       )}
                     </div>
@@ -215,14 +214,14 @@ export default function TakeQuiz() {
             ) : (
               <div style={{ fontSize: '0.9rem' }}>
                 <div>
-                  Your answer:{' '}
+                  {t('yourAnswer')}:{' '}
                   <strong style={{ color: q.isCorrect ? 'var(--success)' : 'var(--error)' }}>
                     {q.studentAnswer || '(no answer)'}
                   </strong>
                 </div>
                 {!q.isCorrect && (
                   <div style={{ color: 'var(--success)', marginTop: 4 }}>
-                    Correct answer: <strong>{q.correctAnswer}</strong>
+                    {t('correctAnswerIs')}: <strong>{q.correctAnswer}</strong>
                   </div>
                 )}
               </div>
@@ -242,7 +241,7 @@ export default function TakeQuiz() {
               }
             }}
           >
-            🔄 Retake Quiz
+            🔄 {t('startQuiz')}
           </button>
         </div>
 
@@ -266,15 +265,15 @@ export default function TakeQuiz() {
               {quiz.title}
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
-              {quiz.questions.length} questions
-              {quiz.settings?.timeLimit > 0 && ` · ${quiz.settings.timeLimit} min time limit`}
+              {quiz.questions.length} {t('questionsText')}
+              {quiz.settings?.timeLimit > 0 && ` · ${quiz.settings.timeLimit} ${t('timeLimit')}`}
             </p>
 
             <div className="form-group" style={{ textAlign: 'left' }}>
-              <label className="form-label">Enter your full name to begin</label>
+              <label className="form-label">{t('studentNameLabel')}</label>
               <input
                 className="form-input"
-                placeholder="e.g. John Smith"
+                placeholder={t('studentNamePlaceholder')}
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleStart()}
@@ -288,7 +287,7 @@ export default function TakeQuiz() {
               disabled={!studentName.trim()}
               style={{ width: '100%' }}
             >
-              Start Quiz →
+              {t('startQuiz')} →
             </button>
           </div>
         </div>
@@ -305,7 +304,7 @@ export default function TakeQuiz() {
         <div>
           <h1 className="page-title" style={{ marginBottom: 0 }}>{quiz.title}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            {answeredCount} of {displayQuestions.length} answered
+            {answeredCount} / {displayQuestions.length} {t('questionsText')}
           </p>
         </div>
 
@@ -325,7 +324,7 @@ export default function TakeQuiz() {
       {displayQuestions.map((q, displayIdx) => (
         <div key={displayIdx} className="question-card">
           <div className="question-number">
-            Question {displayIdx + 1}
+            {t('questionsText')} {displayIdx + 1}
             <span className="question-type">{q.type}</span>
           </div>
           <div className="question-text">{q.questionText}</div>
@@ -333,7 +332,7 @@ export default function TakeQuiz() {
           {q.type === 'fillin' ? (
             <input
               className="form-input"
-              placeholder="Type your answer..."
+              placeholder="..."
               value={answers[q.originalIndex] || ''}
               onChange={(e) => handleAnswer(q.originalIndex, e.target.value)}
             />
@@ -345,7 +344,7 @@ export default function TakeQuiz() {
                   className={`option-item ${answers[q.originalIndex] === opt ? 'selected' : ''}`}
                   onClick={() => handleAnswer(q.originalIndex, opt)}
                 >
-                  <span className="option-letter">{letters[j]}</span>
+                  <span className="option-letter">{letters[j] || (j + 1)}</span>
                   <span>{opt}</span>
                 </div>
               ))}
@@ -356,14 +355,14 @@ export default function TakeQuiz() {
 
       <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-          {answeredCount}/{displayQuestions.length} answered
+          {answeredCount}/{displayQuestions.length}
         </span>
         <button
           className="btn btn-primary btn-lg"
           onClick={handleSubmit}
           disabled={submitting}
         >
-          {submitting ? 'Submitting...' : '✅ Submit Quiz'}
+          {submitting ? t('btnProcessing') : t('submitQuiz')}
         </button>
       </div>
     </div>
