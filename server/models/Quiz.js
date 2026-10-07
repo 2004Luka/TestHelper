@@ -10,6 +10,12 @@ const questionSchema = new mongoose.Schema({
 
 const quizSchema = new mongoose.Schema(
   {
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Teacher',
+      required: false,
+      index: true,
+    },
     title: { type: String, required: true },
     questions: [questionSchema],
     shareCode: { type: String, unique: true, required: true },

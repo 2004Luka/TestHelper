@@ -11,7 +11,7 @@ const submitQuizSchema = z.object({
   }))
 });
 
-// POST /api/submissions — Student submits quiz answers, gets instant grading
+// POST /api/submissions — Student submits quiz answers, gets instant grading (Public)
 export const submitQuiz = async (req, res, next) => {
   try {
     const validationResult = submitQuizSchema.safeParse(req.body);
@@ -81,12 +81,16 @@ export const submitQuiz = async (req, res, next) => {
   }
 };
 
-// GET /api/submissions/:shareCode — All submissions for a quiz
+// GET /api/submissions/:shareCode — All submissions for a quiz (Teacher protected)
 export const getSubmissions = async (req, res, next) => {
   try {
-    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode });
+    if (!req.teacher?._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode, teacher: req.teacher._id });
     if (!quiz) {
-      return res.status(404).json({ success: false, message: 'Quiz not found' });
+      return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
     }
 
     const submissions = await Submission.find({ quizId: quiz._id })
@@ -99,12 +103,16 @@ export const getSubmissions = async (req, res, next) => {
   }
 };
 
-// GET /api/submissions/:shareCode/export — Download results as CSV
+// GET /api/submissions/:shareCode/export — Download results as CSV (Teacher protected)
 export const exportSubmissions = async (req, res, next) => {
   try {
-    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode });
+    if (!req.teacher?._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode, teacher: req.teacher._id });
     if (!quiz) {
-      return res.status(404).json({ success: false, message: 'Quiz not found' });
+      return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
     }
 
     const submissions = await Submission.find({ quizId: quiz._id })

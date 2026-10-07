@@ -5,10 +5,12 @@ import dotenv from 'dotenv';
 import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import { connectDB } from './config/db.js';
 import quizRoutes from './routes/quizRoutes.js';
 import submissionRoutes from './routes/submissionRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -19,6 +21,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 // Security HTTP headers
 app.use(helmet());
+
+// Cookie parser
+app.use(cookieParser());
 
 // Prevent NoSQL injection
 app.use(mongoSanitize());
@@ -69,6 +74,8 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 // API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/quizzes', quizRoutes);
 app.use('/api/submissions', submissionRoutes);

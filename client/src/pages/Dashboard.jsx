@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
   const { t } = useLanguage();
+  const { teacher } = useAuth();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -56,7 +58,9 @@ export default function Dashboard() {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="page-title">{t('dashboardTitle')}</h1>
+          <h1 className="page-title">
+            {t('dashboardTitle')} {teacher ? `(${teacher.name} • ${teacher.subject})` : ''}
+          </h1>
           <p className="page-subtitle">{t('dashboardSub')}</p>
         </div>
         <Link to="/create" className="btn btn-primary">
