@@ -13,10 +13,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
-// ⚠️ Server returned error status 500: Internal Server Erpr i dont want to mix up developement and deployement server and client link connections i got this on submission fix it like when i upload to deployment it will still work as well as in development
-
-
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 

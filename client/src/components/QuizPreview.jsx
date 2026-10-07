@@ -2,10 +2,15 @@
  * Previews parsed quiz questions before generating the link.
  * Props: questions (array)
  */
+import { useLanguage } from '../context/LanguageContext';
+
 export default function QuizPreview({ questions }) {
+  const { lang, t } = useLanguage();
   if (!questions || questions.length === 0) return null;
 
-  const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const letters = lang === 'ka'
+    ? ['ა', 'ბ', 'გ', 'დ', 'ე', 'ვ']
+    : ['A', 'B', 'C', 'D', 'E', 'F'];
 
   return (
     <div style={{ marginTop: 24 }}>

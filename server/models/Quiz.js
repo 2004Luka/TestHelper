@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const questionSchema = new mongoose.Schema({
+  questionNumber: { type: Number },
   questionText: { type: String, required: true },
   type: { type: String, enum: ['mcq', 'truefalse', 'fillin'], default: 'mcq' },
   options: [String],
@@ -15,7 +16,6 @@ const quizSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     settings: {
       timeLimit: { type: Number, default: 0 }, // 0 = no limit, value in minutes
-      shuffleQuestions: { type: Boolean, default: false },
       showScoreImmediately: { type: Boolean, default: true },
     },
   },

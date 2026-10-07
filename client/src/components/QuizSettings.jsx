@@ -28,17 +28,6 @@ export default function QuizSettings({ settings, onChange }) {
           <label className="form-check">
             <input
               type="checkbox"
-              checked={settings.shuffleQuestions || false}
-              onChange={(e) => update('shuffleQuestions', e.target.checked)}
-            />
-            <span>{t('shuffleQuestions')}</span>
-          </label>
-        </div>
-
-        <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
-          <label className="form-check">
-            <input
-              type="checkbox"
               checked={settings.showScoreImmediately ?? true}
               onChange={(e) => update('showScoreImmediately', e.target.checked)}
             />

@@ -36,26 +36,12 @@ export default function TakeQuiz() {
     load();
   }, [shareCode]);
 
-  // Shuffle helper
-  const shuffleArray = (arr) => {
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  };
-
   // Start quiz
   const handleStart = () => {
     if (!studentName.trim()) return;
     setStarted(true);
 
-    let qs = quiz.questions.map((q, i) => ({ ...q, originalIndex: i }));
-    if (quiz.settings?.shuffleQuestions) {
-      qs = shuffleArray(qs);
-    }
-    setDisplayQuestions(qs);
+    setDisplayQuestions(quiz.questions || []);
 
     if (quiz.settings?.timeLimit > 0) {
       setTimeLeft(quiz.settings.timeLimit * 60);
@@ -93,9 +79,9 @@ export default function TakeQuiz() {
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
     try {
-      const formattedAnswers = displayQuestions.map((q) => ({
-        questionIndex: q.originalIndex,
-        selectedAnswer: answers[q.originalIndex] || '',
+      const formattedAnswers = displayQuestions.map((_, idx) => ({
+        questionIndex: idx,
+        selectedAnswer: answers[idx] || '',
       }));
 
       const res = await api.post('/submissions', {
@@ -333,16 +319,16 @@ export default function TakeQuiz() {
             <input
               className="form-input"
               placeholder="..."
-              value={answers[q.originalIndex] || ''}
-              onChange={(e) => handleAnswer(q.originalIndex, e.target.value)}
+              value={answers[displayIdx] || ''}
+              onChange={(e) => handleAnswer(displayIdx, e.target.value)}
             />
           ) : (
             <div className="option-list">
               {q.options.map((opt, j) => (
                 <div
                   key={j}
-                  className={`option-item ${answers[q.originalIndex] === opt ? 'selected' : ''}`}
-                  onClick={() => handleAnswer(q.originalIndex, opt)}
+                  className={`option-item ${answers[displayIdx] === opt ? 'selected' : ''}`}
+                  onClick={() => handleAnswer(displayIdx, opt)}
                 >
                   <span className="option-letter">{letters[j] || (j + 1)}</span>
                   <span>{opt}</span>

@@ -12,7 +12,6 @@ export default function CreateQuiz() {
   const [title, setTitle] = useState('');
   const [settings, setSettings] = useState({
     timeLimit: 0,
-    shuffleQuestions: false,
     showScoreImmediately: true,
   });
   const [quiz, setQuiz] = useState(null);
