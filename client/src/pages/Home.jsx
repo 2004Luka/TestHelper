@@ -18,14 +18,14 @@ export default function Home() {
             {t('homeGetStarted')}
           </Link>
           <Link to="/dashboard" className="btn btn-secondary btn-lg">
-            📊 {t('navDashboard')}
+            {t('navDashboard')}
           </Link>
         </div>
       </div>
 
       <div className="feature-grid">
         <div className="card feature-card">
-          <div className="feature-icon">📄</div>
+          <div className="feature-icon">1</div>
           <div className="feature-title">{t('feature1Title')}</div>
           <div className="feature-desc">
             {t('feature1Desc')}
@@ -33,7 +33,7 @@ export default function Home() {
         </div>
 
         <div className="card feature-card">
-          <div className="feature-icon">🔗</div>
+          <div className="feature-icon">2</div>
           <div className="feature-title">{t('feature2Title')}</div>
           <div className="feature-desc">
             {t('feature2Desc')}
@@ -41,7 +41,7 @@ export default function Home() {
         </div>
 
         <div className="card feature-card">
-          <div className="feature-icon">⚡</div>
+          <div className="feature-icon">3</div>
           <div className="feature-title">{t('feature3Title')}</div>
           <div className="feature-desc">
             {t('feature3Desc')}
@@ -49,7 +49,7 @@ export default function Home() {
         </div>
 
         <div className="card feature-card">
-          <div className="feature-icon">📊</div>
+          <div className="feature-icon">4</div>
           <div className="feature-title">{t('feature4Title')}</div>
           <div className="feature-desc">
             {t('feature4Desc')}
@@ -57,7 +57,7 @@ export default function Home() {
         </div>
 
         <div className="card feature-card">
-          <div className="feature-icon">💬</div>
+          <div className="feature-icon">5</div>
           <div className="feature-title">{t('discussionTitle')}</div>
           <div className="feature-desc">
             {t('discussionSub')}
@@ -65,7 +65,7 @@ export default function Home() {
         </div>
 
         <div className="card feature-card">
-          <div className="feature-icon">🎛️</div>
+          <div className="feature-icon">6</div>
           <div className="feature-title">{t('showScoreImmediately')}</div>
           <div className="feature-desc">
             {t('homeSubtitle')}

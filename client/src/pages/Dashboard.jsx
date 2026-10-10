@@ -64,13 +64,13 @@ export default function Dashboard() {
           <p className="page-subtitle">{t('dashboardSub')}</p>
         </div>
         <Link to="/create" className="btn btn-primary">
-          ✨ {t('navCreate')}
+          + {t('navCreate')}
         </Link>
       </div>
 
       {quizzes.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-icon">—</div>
           <h3>{t('noQuizzesFound')}</h3>
           <p style={{ color: 'var(--text-secondary)', marginTop: 8, marginBottom: 20 }}>
             {t('createSubtitle')}
@@ -92,10 +92,10 @@ export default function Dashboard() {
                     {q.title}
                   </Link>
                   <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                    <span>📝 {q.questions.length} {t('questionsText')}</span>
-                    <span>👥 {q.submissionCount} {t('totalSubmissions')}</span>
-                    <span>🔑 {q.shareCode}</span>
-                    <span>📅 {new Date(q.createdAt).toLocaleDateString()}</span>
+                    <span>{q.questions.length} {t('questionsText')}</span>
+                    <span>{q.submissionCount} {t('totalSubmissions')}</span>
+                    <span>{q.shareCode}</span>
+                    <span>{new Date(q.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -107,7 +107,7 @@ export default function Dashboard() {
 
               <div className="btn-group">
                 <Link to={`/dashboard/${q.shareCode}`} className="btn btn-secondary btn-sm">
-                  📊 {t('studentResults')}
+                  {t('studentResults')}
                 </Link>
                 <button
                   className={`btn btn-sm ${q.isActive ? 'btn-danger' : 'btn-success'}`}
@@ -129,7 +129,7 @@ export default function Dashboard() {
                   className="btn btn-danger btn-sm"
                   onClick={() => handleDelete(q.shareCode)}
                 >
-                  🗑 Delete
+                  Delete
                 </button>
               </div>
             </div>

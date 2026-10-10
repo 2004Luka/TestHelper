@@ -61,14 +61,14 @@ export default function Register() {
               fontSize: '0.9rem',
             }}
           >
-            ⚠️ {error}
+            {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
-              👤 {t('teacherName')}
+              {t('teacherName')}
             </label>
             <input
               type="text"
@@ -83,7 +83,7 @@ export default function Register() {
 
           <div style={{ marginBottom: 20 }}>
             <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
-              📚 {t('teacherSubject')}
+              {t('teacherSubject')}
             </label>
             <input
               type="text"
@@ -98,7 +98,7 @@ export default function Register() {
 
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
-              🔒 {t('password')}
+              {t('password')}
             </label>
             <input
               type="password"

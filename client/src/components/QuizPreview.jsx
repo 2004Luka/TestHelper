@@ -14,7 +14,7 @@ export default function QuizPreview({ questions }) {
 
   return (
     <div style={{ marginTop: 24 }}>
-      <div className="section-title">📋 Preview ({questions.length} questions)</div>
+      <div className="section-title">Preview ({questions.length} questions)</div>
       {questions.map((q, i) => (
         <div key={i} className="question-card">
           <div className="question-number">

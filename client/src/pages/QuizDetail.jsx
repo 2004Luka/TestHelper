@@ -64,7 +64,7 @@ export default function QuizDetail() {
     return (
       <div className="page">
         <div className="empty-state">
-          <div className="empty-state-icon">🚫</div>
+          <div className="empty-state-icon">—</div>
           <h3>{t('noQuizzesFound')}</h3>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function QuizDetail() {
         <div>
           <h1 className="page-title">{quiz.title}</h1>
           <div style={{ display: 'flex', gap: 12, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <span>📝 {quiz.questions.length} {t('questionsText')}</span>
+            <span>{quiz.questions.length} {t('questionsText')}</span>
             <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
               {quiz.isActive ? `● ${t('quizStatusActive')}` : `● ${t('quizStatusClosed')}`}
             </span>
@@ -111,7 +111,7 @@ export default function QuizDetail() {
             className="btn btn-secondary btn-sm"
             download
           >
-            📥 Export CSV
+            Export CSV
           </a>
         </div>
       </div>
@@ -141,11 +141,11 @@ export default function QuizDetail() {
       </div>
 
       {/* Submissions Table */}
-      <div className="section-title" style={{ marginTop: 32 }}>👥 {t('studentResults')}</div>
+      <div className="section-title" style={{ marginTop: 32 }}>{t('studentResults')}</div>
 
       {submissions.length === 0 ? (
         <div className="empty-state" style={{ padding: 40 }}>
-          <div className="empty-state-icon">👥</div>
+          <div className="empty-state-icon">—</div>
           <p>{t('createdSub')}</p>
         </div>
       ) : (

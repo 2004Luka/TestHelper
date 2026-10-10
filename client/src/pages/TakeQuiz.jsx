@@ -111,7 +111,7 @@ export default function TakeQuiz() {
     return (
       <div className="page">
         <div className="empty-state">
-          <div className="empty-state-icon">🚫</div>
+          <div className="empty-state-icon">—</div>
           <h2>{error}</h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
             {t('quizClosedMsg')}
@@ -153,7 +153,7 @@ export default function TakeQuiz() {
           </div>
         </div>
 
-        <div className="section-title">📋 {t('studentResults')}</div>
+        <div className="section-title">{t('studentResults')}</div>
 
         {result.questions.map((q, i) => (
           <div key={i} className="question-card">
@@ -227,7 +227,7 @@ export default function TakeQuiz() {
               }
             }}
           >
-            🔄 {t('startQuiz')}
+            {t('startQuiz')}
           </button>
         </div>
 
@@ -246,7 +246,7 @@ export default function TakeQuiz() {
       <div className="page">
         <div style={{ maxWidth: 500, margin: '60px auto' }}>
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📝</div>
+            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>—</div>
             <h1 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 4 }}>
               {quiz.title}
             </h1>
@@ -300,12 +300,12 @@ export default function TakeQuiz() {
               timeLeft <= 60 ? 'danger' : timeLeft <= 300 ? 'warning' : ''
             }`}
           >
-            ⏱ {formatTime(timeLeft)}
+            {formatTime(timeLeft)}
           </div>
         )}
       </div>
 
-      {error && <div className="alert alert-error">⚠️ {error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {displayQuestions.map((q, displayIdx) => (
         <div key={displayIdx} className="question-card">

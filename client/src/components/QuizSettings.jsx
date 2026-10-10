@@ -9,7 +9,7 @@ export default function QuizSettings({ settings, onChange }) {
 
   return (
     <div className="card" style={{ marginTop: 20 }}>
-      <div className="card-title" style={{ marginBottom: 16 }}>⚙️ {t('quizTitleLabel')} {t('navHome') === 'Home' ? 'Settings' : 'პარამეტრები'}</div>
+      <div className="card-title" style={{ marginBottom: 16 }}>{t('quizTitleLabel')} {t('navHome') === 'Home' ? 'Settings' : 'პარამეტრები'}</div>
 
       <div className="form-row">
         <div className="form-group">

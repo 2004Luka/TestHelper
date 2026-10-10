@@ -69,7 +69,7 @@ function Navbar() {
                   fontWeight: 500,
                 }}
               >
-                <span>👨‍🏫 {teacher.name}</span>
+                <span>{teacher.name}</span>
                 <span style={{ opacity: 0.6, fontSize: '0.8rem' }}>({teacher.subject})</span>
               </div>
 
@@ -78,16 +78,16 @@ function Navbar() {
                 onClick={logout}
                 style={{ marginLeft: 4, padding: '4px 10px', fontSize: '0.85rem' }}
               >
-                🚪 {t('logout')}
+                {t('logout')}
               </button>
             </>
           ) : (
             <>
               <Link to="/login" className={pathname === '/login' ? 'active' : ''}>
-                🔑 {t('navLogin')}
+                {t('navLogin')}
               </Link>
               <Link to="/register" className={pathname === '/register' ? 'active' : ''}>
-                ✨ {t('navRegister')}
+                {t('navRegister')}
               </Link>
             </>
           )}

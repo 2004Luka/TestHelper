@@ -67,7 +67,7 @@ export default function Discussion({ shareCode, currentUser, currentRole }) {
       <div className="comment-list" ref={listRef}>
         {comments.length === 0 ? (
           <div className="empty-state" style={{ padding: '24px' }}>
-            <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>💬</div>
+            <div style={{ fontSize: '1.2rem', marginBottom: 8, color: 'var(--text-muted)' }}>No messages yet</div>
             <div>{t('noComments')}</div>
           </div>
         ) : (

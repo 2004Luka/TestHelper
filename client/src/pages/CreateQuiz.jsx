@@ -114,7 +114,7 @@ export default function CreateQuiz() {
       <h1 className="page-title">{t('createTitle')}</h1>
       <p className="page-subtitle">{t('createSubtitle')}</p>
 
-      {error && <div className="alert alert-error">⚠️ {error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
       <div className="form-group">
         <label className="form-label">{t('quizTitleLabel')}</label>

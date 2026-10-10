@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════
-   QuizGen Design System — Dark Premium Theme
-   ═══════════════════════════════════════════════ */
+/* QuizGen Styles */
 
 /* ── Reset & Base ── */
 *,
@@ -12,22 +10,21 @@
 }
 
 :root {
-  --bg-primary: #0a0a12;
-  --bg-secondary: #12121e;
-  --bg-card: rgba(20, 20, 35, 0.8);
-  --bg-card-hover: rgba(30, 30, 50, 0.9);
+  --bg-primary: #111318;
+  --bg-secondary: #191b22;
+  --bg-card: rgba(25, 27, 34, 0.95);
+  --bg-card-hover: rgba(35, 38, 48, 0.95);
   --bg-glass: rgba(255, 255, 255, 0.03);
-  --border-color: rgba(255, 255, 255, 0.06);
-  --border-active: rgba(124, 92, 252, 0.4);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(45, 190, 170, 0.35);
 
-  --text-primary: #e8e8f0;
-  --text-secondary: #8888a8;
-  --text-muted: #55556a;
+  --text-primary: #e2e4e9;
+  --text-secondary: #8b8fa3;
+  --text-muted: #585c6e;
 
-  --accent-purple: #7c5cfc;
-  --accent-blue: #4ea8f6;
-  --accent-gradient: linear-gradient(135deg, #7c5cfc 0%, #4ea8f6 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #8d6ffd 0%, #62b5f8 100%);
+  --accent: #2dbea8;
+  --accent-hover: #3dd4bc;
+  --accent-subtle: rgba(45, 190, 168, 0.1);
 
   --success: #34d399;
   --success-bg: rgba(52, 211, 153, 0.1);
@@ -36,15 +33,14 @@
   --warning: #fbbf24;
   --warning-bg: rgba(251, 191, 36, 0.1);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 40px rgba(124, 92, 252, 0.15);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 3px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 6px 32px rgba(0, 0, 0, 0.35);
 
   --transition-fast: 0.15s ease;
   --transition-base: 0.25s ease;
@@ -65,19 +61,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background ambient glow */
-body::before {
-  content: '';
-  position: fixed;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at 30% 20%, rgba(124, 92, 252, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(78, 168, 246, 0.04) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
+
 
 #root {
   position: relative;
@@ -85,12 +69,12 @@ body::before {
 }
 
 a {
-  color: var(--accent-blue);
+  color: var(--accent);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 a:hover {
-  color: var(--accent-purple);
+  color: var(--accent-hover);
 }
 
 /* ── Layout ── */
@@ -169,12 +153,14 @@ a:hover {
 .navbar-brand .logo-icon {
   width: 32px;
   height: 32px;
-  background: var(--accent-gradient);
+  background: var(--accent);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  color: #111318;
+  font-weight: 700;
 }
 
 .navbar-links {
@@ -209,7 +195,7 @@ a:hover {
 
 .card:hover {
   border-color: var(--border-active);
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
@@ -227,11 +213,8 @@ a:hover {
 /* ── Typography ── */
 .page-title {
   font-size: 2rem;
-  font-weight: 800;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 700;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
@@ -273,14 +256,13 @@ a:hover {
 }
 
 .btn-primary {
-  background: var(--accent-gradient);
-  color: white;
-  box-shadow: 0 2px 12px rgba(124, 92, 252, 0.3);
+  background: var(--accent);
+  color: #111318;
+  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-gradient-hover);
-  box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4);
+  background: var(--accent-hover);
   transform: translateY(-1px);
 }
 
@@ -363,8 +345,8 @@ a:hover {
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45, 190, 168, 0.1);
 }
 
 .form-input::placeholder,
@@ -394,7 +376,7 @@ a:hover {
 .form-check input[type='radio'] {
   width: 18px;
   height: 18px;
-  accent-color: var(--accent-purple);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -411,8 +393,8 @@ a:hover {
 
 .upload-zone:hover,
 .upload-zone.drag-over {
-  border-color: var(--accent-purple);
-  background: rgba(124, 92, 252, 0.05);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .upload-zone.has-file {
@@ -431,7 +413,7 @@ a:hover {
 }
 
 .upload-text strong {
-  color: var(--accent-purple);
+  color: var(--accent);
 }
 
 .upload-filename {
@@ -473,7 +455,7 @@ a:hover {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--accent-purple);
+  color: var(--accent);
   margin-bottom: 8px;
 }
 
@@ -492,8 +474,8 @@ a:hover {
   letter-spacing: 0.05em;
   padding: 3px 8px;
   border-radius: 4px;
-  background: rgba(124, 92, 252, 0.1);
-  color: var(--accent-purple);
+  background: var(--accent-subtle);
+  color: var(--accent);
   margin-left: 8px;
 }
 
@@ -517,13 +499,13 @@ a:hover {
 }
 
 .option-item:hover {
-  border-color: var(--accent-purple);
-  background: rgba(124, 92, 252, 0.05);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .option-item.selected {
-  border-color: var(--accent-purple);
-  background: rgba(124, 92, 252, 0.1);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
 }
 
 .option-item.correct {
@@ -552,9 +534,9 @@ a:hover {
 }
 
 .option-item.selected .option-letter {
-  background: var(--accent-gradient);
+  background: var(--accent);
   border-color: transparent;
-  color: white;
+  color: #111318;
 }
 
 .option-item.correct .option-letter {
@@ -587,11 +569,8 @@ a:hover {
 
 .result-stat-value {
   font-size: 2rem;
-  font-weight: 800;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .result-stat-label {
@@ -618,8 +597,8 @@ a:hover {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  padding: 4px;
-  background: var(--accent-gradient);
+  padding: 3px;
+  background: var(--accent);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
@@ -697,8 +676,8 @@ tr:hover td {
 }
 
 .badge-attempt {
-  background: rgba(124, 92, 252, 0.1);
-  color: var(--accent-purple);
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 /* ── Share Link ── */
@@ -717,7 +696,7 @@ tr:hover td {
   flex: 1;
   background: none;
   border: none;
-  color: var(--accent-blue);
+  color: var(--accent);
   font-family: monospace;
   font-size: 0.9rem;
   outline: none;
@@ -776,13 +755,13 @@ tr:hover td {
 }
 
 .comment-avatar.teacher {
-  background: rgba(124, 92, 252, 0.2);
-  color: var(--accent-purple);
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .comment-avatar.student {
-  background: rgba(78, 168, 246, 0.2);
-  color: var(--accent-blue);
+  background: rgba(100, 160, 220, 0.15);
+  color: #64a0dc;
 }
 
 .comment-body {
@@ -810,13 +789,13 @@ tr:hover td {
 }
 
 .comment-role.teacher {
-  background: rgba(124, 92, 252, 0.15);
-  color: var(--accent-purple);
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .comment-role.student {
-  background: rgba(78, 168, 246, 0.15);
-  color: var(--accent-blue);
+  background: rgba(100, 160, 220, 0.15);
+  color: #64a0dc;
 }
 
 .comment-time {
@@ -881,7 +860,7 @@ tr:hover td {
   width: 40px;
   height: 40px;
   border: 3px solid var(--border-color);
-  border-top-color: var(--accent-purple);
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -935,17 +914,11 @@ tr:hover td {
 }
 
 .hero-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.15;
   margin-bottom: 16px;
-}
-
-.hero-title .gradient-text {
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .hero-subtitle {
@@ -975,7 +948,16 @@ tr:hover td {
 }
 
 .feature-icon {
-  font-size: 1.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
   margin-bottom: 12px;
 }
 

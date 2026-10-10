@@ -44,11 +44,11 @@ export default function FileUpload({ label, accept = '.docx', file, onFile }) {
         onChange={handleChange}
         style={{ display: 'none' }}
       />
-      <div className="upload-icon">{file ? '✅' : '📄'}</div>
+      <div className="upload-icon">{file ? '✓' : '↑'}</div>
       <div className="upload-text">
         {file ? (
           <div>
-            <div className="upload-filename">📎 {file.name}</div>
+            <div className="upload-filename">{file.name}</div>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               {t('dropzoneChange')}
             </span>
