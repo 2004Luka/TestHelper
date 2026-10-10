@@ -86,17 +86,17 @@ export default function QuizDetail() {
         ← {t('navDashboard')}
       </Link>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 16 }}>
+      <div className="page-header" style={{ marginTop: 16 }}>
         <div>
           <h1 className="page-title">{quiz.title}</h1>
-          <div style={{ display: 'flex', gap: 12, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <div className="quiz-meta">
             <span>{quiz.questions.length} {t('questionsText')}</span>
             <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
               {quiz.isActive ? `● ${t('quizStatusActive')}` : `● ${t('quizStatusClosed')}`}
             </span>
           </div>
         </div>
-        <div className="btn-group">
+        <div className="page-header-actions">
           <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
             {copied ? t('btnCopied') : t('btnCopy')}
           </button>

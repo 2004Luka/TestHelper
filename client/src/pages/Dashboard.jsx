@@ -56,7 +56,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div className="page-header">
         <div>
           <h1 className="page-title">
             {t('dashboardTitle')} {teacher ? `(${teacher.name} • ${teacher.subject})` : ''}
@@ -91,7 +91,7 @@ export default function Dashboard() {
                   >
                     {q.title}
                   </Link>
-                  <div style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  <div className="quiz-meta">
                     <span>{q.questions.length} {t('questionsText')}</span>
                     <span>{q.submissionCount} {t('totalSubmissions')}</span>
                     <span>{q.shareCode}</span>

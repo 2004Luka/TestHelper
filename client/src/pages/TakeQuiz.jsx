@@ -244,7 +244,7 @@ export default function TakeQuiz() {
   if (!started) {
     return (
       <div className="page">
-        <div style={{ maxWidth: 500, margin: '60px auto' }}>
+        <div className="quiz-entry">
           <div className="card" style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>—</div>
             <h1 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 4 }}>
@@ -286,7 +286,7 @@ export default function TakeQuiz() {
 
   return (
     <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div className="quiz-header">
         <div>
           <h1 className="page-title" style={{ marginBottom: 0 }}>{quiz.title}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -339,7 +339,7 @@ export default function TakeQuiz() {
         </div>
       ))}
 
-      <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="quiz-footer">
         <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
           {answeredCount}/{displayQuestions.length}
         </span>

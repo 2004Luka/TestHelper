@@ -183,6 +183,46 @@ a:hover {
   background: var(--bg-glass);
 }
 
+.teacher-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 4px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.teacher-subject {
+  opacity: 0.6;
+  font-size: 0.8rem;
+}
+
+.student-lang-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+}
+
+.lang-btn {
+  margin-left: 4px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+.nav-action-btn {
+  margin-left: 2px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
 /* ── Cards ── */
 .card {
   background: var(--bg-card);
@@ -972,10 +1012,166 @@ tr:hover td {
   line-height: 1.5;
 }
 
+/* ── Page Header Layout ── */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── Quiz Header (TakeQuiz top bar) ── */
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+/* ── Quiz Meta Info ── */
+.quiz-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ── Quiz Footer (submit bar) ── */
+.quiz-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Auth Form Container ── */
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.auth-card {
+  padding: 32px 28px;
+  border-radius: 14px;
+}
+
+.auth-card h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.auth-card .auth-subtitle {
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+.auth-card .form-group-inline {
+  margin-bottom: 20px;
+}
+
+.auth-card .form-group-inline:last-of-type {
+  margin-bottom: 24px;
+}
+
+.auth-card .form-group-inline label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.auth-card .form-group-inline input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.auth-card .form-group-inline input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(45, 190, 168, 0.1);
+}
+
+.auth-card .form-group-inline input::placeholder {
+  color: var(--text-muted);
+}
+
+.auth-card .auth-submit {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.auth-card .auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* ── Quiz Entry Card ── */
+.quiz-entry {
+  width: 100%;
+  max-width: 500px;
+  margin: 60px auto;
+  padding: 0 16px;
+}
+
+/* ── Inline Alert (Login/Register) ── */
+.inline-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.inline-alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.inline-alert-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .hero-title {
     font-size: 2.2rem;
+  }
+
+  .hero {
+    padding: 48px 0 40px;
   }
 
   .grid-2 {
@@ -993,12 +1189,129 @@ tr:hover td {
     gap: 8px;
   }
 
+  .navbar-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .navbar-links a {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .teacher-badge {
+    margin-left: 0;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
   }
 
   .result-summary {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-header-actions {
+    width: 100%;
+  }
+
+  .page-header-actions .btn {
+    flex: 1;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .quiz-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .share-link-box {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .share-link-box input {
+    width: 100%;
+    font-size: 0.8rem;
+    word-break: break-all;
+  }
+
+  .comment-form {
+    flex-direction: column;
+  }
+
+  .comment-form .btn {
+    width: 100%;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    flex: 1 1 auto;
+    min-width: 140px;
+    font-size: 0.825rem;
+    padding: 8px 12px;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .quiz-meta {
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+
+  .page-title {
+    font-size: 1.6rem;
+  }
+
+  .table-container {
+    margin: 0 -16px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  th, td {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+
+  th {
+    font-size: 0.7rem;
+  }
+
+  .auth-container {
+    margin: 24px auto;
+  }
+
+  .quiz-entry {
+    margin: 32px auto;
   }
 }
 
@@ -1007,15 +1320,187 @@ tr:hover td {
     font-size: 1.8rem;
   }
 
+  .hero {
+    padding: 32px 0 24px;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 28px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .page {
     padding: 24px 0 60px;
   }
 
+  .app-container {
+    padding: 0 16px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+  }
+
   .card {
-    padding: 20px;
+    padding: 20px 16px;
   }
 
   .upload-zone {
-    padding: 24px;
+    padding: 24px 16px;
+  }
+
+  .upload-icon {
+    font-size: 2rem;
+  }
+
+  .question-card {
+    padding: 16px;
+  }
+
+  .option-item {
+    padding: 10px 12px;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+
+  .option-letter {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .result-stat {
+    padding: 14px 10px;
+  }
+
+  .result-stat-value {
+    font-size: 1.5rem;
+  }
+
+  .result-stat-label {
+    font-size: 0.7rem;
+  }
+
+  .score-circle {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+  }
+
+  .score-circle .score-value {
+    font-size: 1.6rem;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    white-space: normal;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+    word-break: break-word;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+
+  .quiz-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quiz-footer span {
+    text-align: center;
+  }
+
+  .timer {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+
+  .comment-item {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .comment-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.75rem;
+  }
+
+  .comment-meta {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  .empty-state {
+    padding: 40px 16px;
+  }
+
+  .empty-state-icon {
+    font-size: 2rem;
   }
 }
+
+@media (max-width: 360px) {
+  .hero-title {
+    font-size: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .btn-lg {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 16px 12px;
+  }
+
+  .result-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .navbar-links {
+    gap: 2px;
+  }
+
+  .navbar-links a {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 0.7rem;
+  }
+}
+

@@ -16,16 +16,15 @@ export default function ProtectedRoute({ children }) {
 
   if (!teacher) {
     return (
-      <div style={{ maxWidth: 500, margin: '60px auto', textAlign: 'center' }}>
-        <div className="card shadow-lg" style={{ padding: '40px 24px', borderRadius: 16 }}>
-          <div style={{ fontSize: '1.5rem', marginBottom: 16, color: 'var(--text-muted)' }}>—</div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 12 }}>
+      <div className="auth-container" style={{ maxWidth: 500 }}>
+        <div className="card auth-card" style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.5rem' }}>
             {t('authRequiredMsg')}
           </h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 28, fontSize: '0.95rem' }}>
+          <p className="auth-subtitle">
             {t('loginSubtitle')}
           </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/login" className="btn btn-primary" style={{ padding: '10px 24px' }}>
               {t('navLogin')}
             </Link>

@@ -21,12 +21,11 @@ function Navbar() {
 
   if (isStudentQuiz) {
     return (
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 100 }}>
+      <div className="student-lang-toggle">
         <button
-          className="btn btn-secondary btn-sm"
+          className="btn btn-secondary btn-sm lang-btn"
           onClick={toggleLanguage}
           title="Switch Language / ენის შეცვლა"
-          style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)' }}
         >
           {lang === 'ka' ? '🇬🇪 ქართული' : '🇺🇸 English'}
         </button>
@@ -55,28 +54,14 @@ function Navbar() {
                 {t('navDashboard')}
               </Link>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginLeft: 8,
-                  padding: '4px 10px',
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 20,
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                }}
-              >
+              <div className="teacher-badge">
                 <span>{teacher.name}</span>
-                <span style={{ opacity: 0.6, fontSize: '0.8rem' }}>({teacher.subject})</span>
+                <span className="teacher-subject">({teacher.subject})</span>
               </div>
 
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-secondary btn-sm nav-action-btn"
                 onClick={logout}
-                style={{ marginLeft: 4, padding: '4px 10px', fontSize: '0.85rem' }}
               >
                 {t('logout')}
               </button>
@@ -93,9 +78,8 @@ function Navbar() {
           )}
 
           <button
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary btn-sm lang-btn"
             onClick={toggleLanguage}
-            style={{ marginLeft: 8, padding: '4px 12px', fontSize: '0.85rem' }}
           >
             {lang === 'ka' ? '🇬🇪 ქართული' : '🇺🇸 English'}
           </button>

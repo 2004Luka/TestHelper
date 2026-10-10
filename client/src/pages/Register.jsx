@@ -39,90 +39,72 @@ export default function Register() {
   };
 
   return (
-    <div style={{ maxWidth: 440, margin: '40px auto' }}>
-      <div className="card shadow-lg" style={{ padding: '32px 28px', borderRadius: 16 }}>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
+    <div className="auth-container">
+      <div className="card auth-card">
+        <h2>
           {t('registerTitle')}
         </h2>
-        <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginBottom: 28, fontSize: '0.95rem' }}>
+        <p className="auth-subtitle">
           {t('registerSubtitle')}
         </p>
 
         {error && (
-          <div
-            className="alert alert-danger"
-            style={{
-              padding: '12px 16px',
-              borderRadius: 8,
-              marginBottom: 20,
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid var(--danger)',
-              color: 'var(--danger)',
-              fontSize: '0.9rem',
-            }}
-          >
+          <div className="inline-alert inline-alert-error">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
+          <div className="form-group-inline">
+            <label>
               {t('teacherName')}
             </label>
             <input
               type="text"
-              className="form-control"
               placeholder="e.g. Giorgi Beridze"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 8 }}
             />
           </div>
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
+          <div className="form-group-inline">
+            <label>
               {t('teacherSubject')}
             </label>
             <input
               type="text"
-              className="form-control"
               placeholder="e.g. History / ისტორია"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               required
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 8 }}
             />
           </div>
 
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: 6, fontSize: '0.9rem' }}>
+          <div className="form-group-inline">
+            <label>
               {t('password')}
             </label>
             <input
               type="password"
-              className="form-control"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 8 }}
             />
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary auth-submit"
             disabled={submitting}
-            style={{ width: '100%', padding: '12px', fontSize: '1rem', fontWeight: 600, borderRadius: 8 }}
           >
             {submitting ? '...' : t('registerBtn')}
           </button>
         </form>
 
-        <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.9rem' }}>
-          <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
+        <div className="auth-footer">
+          <Link to="/login">
             {t('alreadyHaveAccount')}
           </Link>
         </div>
