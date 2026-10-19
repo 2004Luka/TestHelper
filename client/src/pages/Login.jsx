@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import Logo from '../components/Logo';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -44,6 +45,9 @@ export default function Login() {
   return (
     <div className="auth-container">
       <div className="card auth-card">
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <Logo size="lg" />
+        </div>
         <h2>
           {t('loginTitle')}
         </h2>

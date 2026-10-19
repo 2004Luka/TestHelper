@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/client';
-import Discussion from '../components/Discussion';
+import Logo from '../components/Logo';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function TakeQuiz() {
@@ -48,34 +48,6 @@ export default function TakeQuiz() {
     }
   };
 
-  // Timer countdown
-  useEffect(() => {
-    if (timeLeft === null || timeLeft <= 0 || result) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          handleSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timeLeft, result]);
-
-  const formatTime = (secs) => {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const handleAnswer = (questionIndex, answer) => {
-    setAnswers((prev) => ({ ...prev, [questionIndex]: answer }));
-  };
-
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
     try {
@@ -95,6 +67,40 @@ export default function TakeQuiz() {
     }
     setSubmitting(false);
   }, [answers, displayQuestions, shareCode, studentName]);
+
+  // Use a ref to always have the latest handleSubmit for the timer
+  const handleSubmitRef = useRef(handleSubmit);
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
+
+  // Timer countdown — uses ref to avoid stale closure
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0 || result) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleSubmitRef.current();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft, result]);
+
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleAnswer = (questionIndex, answer) => {
+    setAnswers((prev) => ({ ...prev, [questionIndex]: answer }));
+  };
 
   if (loading) {
     return (
@@ -230,12 +236,6 @@ export default function TakeQuiz() {
             {t('startQuiz')}
           </button>
         </div>
-
-        <Discussion
-          shareCode={shareCode}
-          currentUser={studentName}
-          currentRole="student"
-        />
       </div>
     );
   }
@@ -246,7 +246,9 @@ export default function TakeQuiz() {
       <div className="page">
         <div className="quiz-entry">
           <div className="card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>—</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <Logo size="lg" />
+            </div>
             <h1 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 4 }}>
               {quiz.title}
             </h1>

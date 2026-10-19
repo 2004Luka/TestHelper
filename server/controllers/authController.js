@@ -5,6 +5,13 @@ import Quiz from '../models/Quiz.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_quizgen_2026';
 
+/**
+ * Escape special regex characters to prevent ReDoS attacks.
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 const generateToken = (id) => {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
 };
@@ -44,16 +51,20 @@ export const registerTeacher = async (req, res, next) => {
       return res.status(400).json({ message: 'Please provide name, subject, and password' });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
     const trimmedName = name.trim();
     const existingTeacher = await Teacher.findOne({
-      name: { $regex: new RegExp(`^${trimmedName}$`, 'i') },
+      name: { $regex: new RegExp(`^${escapeRegex(trimmedName)}$`, 'i') },
     });
 
     if (existingTeacher) {
       return res.status(400).json({ message: 'A teacher with this name already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const teacher = await Teacher.create({
@@ -89,7 +100,7 @@ export const loginTeacher = async (req, res, next) => {
     }
 
     const teacher = await Teacher.findOne({
-      name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
+      name: { $regex: new RegExp(`^${escapeRegex(name.trim())}$`, 'i') },
     });
 
     if (!teacher) {

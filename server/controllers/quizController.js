@@ -101,8 +101,10 @@ export const getQuizByCode = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'This quiz has been disabled by the teacher' });
     }
 
-    // Strip correct answers before sending to student
+    // Strip correct answers and internal references before sending to student
     const safe = quiz.toObject();
+    delete safe.teacher;
+    delete safe.__v;
     safe.questions = safe.questions.map(({ correctAnswer, ...q }) => q);
 
     res.json({ success: true, data: safe });

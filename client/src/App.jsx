@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import CreateQuiz from './pages/CreateQuiz';
@@ -7,6 +8,7 @@ import QuizDetail from './pages/QuizDetail';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import Logo from './components/Logo';
 
 import { useLanguage } from './context/LanguageContext';
 import { useAuth } from './context/AuthContext';
@@ -15,13 +17,22 @@ function Navbar() {
   const { pathname } = useLocation();
   const { lang, toggleLanguage, t } = useLanguage();
   const { teacher, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   // Show language switcher even on student quiz page
   const isStudentQuiz = pathname.startsWith('/quiz/');
 
   if (isStudentQuiz) {
     return (
-      <div className="student-lang-toggle">
+      <div className="student-header">
+        <Link to="/" className="navbar-brand">
+          <Logo size="sm" />
+        </Link>
         <button
           className="btn btn-secondary btn-sm lang-btn"
           onClick={toggleLanguage}
@@ -37,10 +48,18 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand">
-          <span className="logo-icon">Q</span>
-          QuizGen
+          <Logo size="md" />
         </Link>
-        <div className="navbar-links">
+
+        <button
+          className="navbar-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle navigation menu"
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
+
+        <div className={`navbar-links ${menuOpen ? 'open' : ''}`}>
           <Link to="/" className={pathname === '/' ? 'active' : ''}>
             {t('navHome')}
           </Link>

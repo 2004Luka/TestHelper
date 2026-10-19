@@ -9,6 +9,13 @@ export default function Dashboard() {
   const { teacher } = useAuth();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(null);
+
+  const handleCopy = (shareCode, id) => {
+    navigator.clipboard.writeText(`${window.location.origin}/quiz/${shareCode}`);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const loadQuizzes = async () => {
     try {
@@ -56,7 +63,7 @@ export default function Dashboard() {
 
   return (
     <div className="page">
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <h1 className="page-title">
             {t('dashboardTitle')} {teacher ? `(${teacher.name} • ${teacher.subject})` : ''}
@@ -87,46 +94,62 @@ export default function Dashboard() {
                 <div>
                   <Link
                     to={`/dashboard/${q.shareCode}`}
-                    style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}
+                    style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}
                   >
                     {q.title}
                   </Link>
-                  <div className="quiz-meta">
+                  <div className="quiz-meta" style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     <span>{q.questions.length} {t('questionsText')}</span>
+                    <span>·</span>
                     <span>{q.submissionCount} {t('totalSubmissions')}</span>
-                    <span>{q.shareCode}</span>
+                    <span>·</span>
+                    <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{q.shareCode}</span>
+                    <span>·</span>
                     <span>{new Date(q.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span className={`badge ${q.isActive ? 'badge-active' : 'badge-inactive'}`}>
-                    {q.isActive ? `● ${t('quizStatusActive')}` : `● ${t('quizStatusClosed')}`}
+                    ● {q.isActive ? t('quizStatusActive') : t('quizStatusClosed')}
                   </span>
                 </div>
               </div>
 
-              <div className="btn-group">
+              {/* Quiz Link with Copy Button */}
+              <div className="share-link-box" style={{ marginTop: 12 }}>
+                <input
+                  value={`${window.location.origin}/quiz/${q.shareCode}`}
+                  readOnly
+                  onClick={(e) => e.target.select()}
+                  title="Quiz Link"
+                />
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => handleCopy(q.shareCode, q._id)}
+                >
+                  {copiedId === q._id ? t('btnCopied') : t('btnCopy')}
+                </button>
+              </div>
+
+              <div className="btn-group" style={{ marginTop: 12 }}>
                 <Link to={`/dashboard/${q.shareCode}`} className="btn btn-secondary btn-sm">
                   {t('studentResults')}
                 </Link>
                 <button
-                  className={`btn btn-sm ${q.isActive ? 'btn-danger' : 'btn-success'}`}
+                  className={`btn btn-sm ${q.isActive ? 'btn-secondary' : 'btn-primary'}`}
                   onClick={() => handleToggle(q.shareCode)}
                 >
                   {q.isActive ? t('finishQuizBtn') : t('reopenQuizBtn')}
                 </button>
                 <button
                   className="btn btn-secondary btn-sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `${window.location.origin}/quiz/${q.shareCode}`
-                    );
-                  }}
+                  onClick={() => handleCopy(q.shareCode, q._id)}
                 >
-                  {t('btnCopy')}
+                  {copiedId === q._id ? t('btnCopied') : t('btnCopy')}
                 </button>
                 <button
-                  className="btn btn-danger btn-sm"
+                  className="btn btn-secondary btn-sm"
+                  style={{ color: 'var(--text-secondary)' }}
                   onClick={() => handleDelete(q.shareCode)}
                 >
                   Delete

@@ -42,13 +42,13 @@ app.use(cors({
     const cleanOrigin = origin.replace(/\/$/, '');
     const allowed = getOrigins();
 
-    if (
-      allowed.includes('*') ||
-      allowed.includes(cleanOrigin) ||
-      cleanOrigin.endsWith('.netlify.app') ||
-      cleanOrigin.includes('localhost') ||
-      cleanOrigin.includes('127.0.0.1')
-    ) {
+    if (allowed.includes(cleanOrigin)) {
+      return callback(null, cleanOrigin);
+    }
+
+    // In development, also allow localhost variants
+    if (process.env.NODE_ENV !== 'production' &&
+        (cleanOrigin.includes('localhost') || cleanOrigin.includes('127.0.0.1'))) {
       return callback(null, cleanOrigin);
     }
 
@@ -72,6 +72,16 @@ const apiLimiter = rateLimit({
   message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
 app.use('/api/', apiLimiter);
+
+// Strict rate limiting on authentication to prevent brute force
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Max 20 attempts per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many authentication attempts. Please try again after 15 minutes' }
+});
+app.use(['/api/auth/login', '/api/auth/register', '/auth/login', '/auth/register'], authLimiter);
 
 // API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
 app.use('/api/auth', authRoutes);
