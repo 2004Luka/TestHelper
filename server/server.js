@@ -18,6 +18,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust reverse proxy (Render, Heroku, etc.) for rate limiting and IP detection
+app.set('trust proxy', 1);
+
 // Middleware
 // Security HTTP headers
 app.use(helmet());
@@ -36,23 +39,25 @@ const getOrigins = () => {
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. server-to-server, curl, Postman)
+    // Allow non-browser requests (e.g. server-to-server, curl, Postman, health checks)
     if (!origin) return callback(null, true);
 
     const cleanOrigin = origin.replace(/\/$/, '');
     const allowed = getOrigins();
 
-    if (allowed.includes(cleanOrigin)) {
+    // Allow configured origins, all .netlify.app deployments, or localhost
+    if (
+      allowed.includes('*') ||
+      allowed.includes(cleanOrigin) ||
+      cleanOrigin.endsWith('.netlify.app') ||
+      cleanOrigin.includes('localhost') ||
+      cleanOrigin.includes('127.0.0.1')
+    ) {
       return callback(null, cleanOrigin);
     }
 
-    // In development, also allow localhost variants
-    if (process.env.NODE_ENV !== 'production' &&
-        (cleanOrigin.includes('localhost') || cleanOrigin.includes('127.0.0.1'))) {
-      return callback(null, cleanOrigin);
-    }
-
-    return callback(new Error(`CORS policy blocked request from origin: ${origin}`));
+    // Reject unallowed origins gracefully without throwing an unhandled 500 error
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
