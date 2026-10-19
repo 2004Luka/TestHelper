@@ -4,6 +4,7 @@ import {
   submitQuiz,
   getSubmissions,
   exportSubmissions,
+  deleteSubmission,
 } from '../controllers/submissionController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -21,5 +22,6 @@ const submitLimiter = rateLimit({
 router.post('/', submitLimiter, submitQuiz);
 router.get('/:shareCode', protect, getSubmissions);
 router.get('/:shareCode/export', protect, exportSubmissions);
+router.delete('/:id', protect, deleteSubmission);
 
 export default router;

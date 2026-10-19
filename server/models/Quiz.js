@@ -20,6 +20,8 @@ const quizSchema = new mongoose.Schema(
     questions: [questionSchema],
     shareCode: { type: String, unique: true, required: true },
     isActive: { type: Boolean, default: true },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date, default: null },
     settings: {
       timeLimit: { type: Number, default: 0 }, // 0 = no limit, value in minutes
       showScoreImmediately: { type: Boolean, default: true },

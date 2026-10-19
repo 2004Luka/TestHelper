@@ -63,6 +63,27 @@ export default function QuizDetail() {
     } catch {}
   };
 
+  const handleRestore = async () => {
+    try {
+      const res = await api.patch(`/quizzes/${shareCode}/restore`);
+      setQuiz(res.data);
+    } catch {}
+  };
+
+  const handleDeleteSubmission = async (submissionId, studentName) => {
+    const promptMsg = `${t('confirmDeleteSubmission')}${studentName ? ` (${studentName})` : ''}`;
+    if (!confirm(promptMsg)) return;
+    try {
+      await api.del(`/submissions/${submissionId}`);
+      setSubmissions((prev) => prev.filter((s) => s._id !== submissionId));
+      if (selectedSubmission?._id === submissionId) {
+        setSelectedSubmission(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete submission:', err);
+    }
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(`${window.location.origin}/quiz/${shareCode}`);
     setCopied(true);
@@ -179,9 +200,15 @@ export default function QuizDetail() {
           <div className="quiz-meta" style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 6, fontSize: '0.88rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
             <span>{totalPossibleQuestions} {t('questionsText')}</span>
             <span>·</span>
-            <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
-              ● {quiz.isActive ? t('quizStatusActive') : t('quizStatusClosed')}
-            </span>
+            {quiz.isDeleted ? (
+              <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                🗑 {t('recentlyDeleted')}
+              </span>
+            ) : (
+              <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
+                ● {quiz.isActive ? t('quizStatusActive') : t('quizStatusClosed')}
+              </span>
+            )}
           </div>
         </div>
         <div className="page-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -213,6 +240,20 @@ export default function QuizDetail() {
           {copied ? t('btnCopied') : t('btnCopy')}
         </button>
       </div>
+
+      {quiz.isDeleted && (
+        <div className="recently-deleted-notice" style={{ marginTop: 16 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <div style={{ flex: 1 }}>{t('recentlyDeletedSub')}</div>
+          <button className="btn btn-restore btn-sm" onClick={handleRestore}>
+            ↻ {t('restoreQuiz')}
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="result-summary" style={{ marginTop: 24 }}>
@@ -297,7 +338,7 @@ export default function QuizDetail() {
                 <th>{t('percentage')}</th>
                 <th>{t('attemptsCount')}</th>
                 <th>{t('dateSubmitted')}</th>
-                <th style={{ textAlign: 'right' }}>{t('viewMistakes')}</th>
+                <th style={{ textAlign: 'right' }}>{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -326,43 +367,58 @@ export default function QuizDetail() {
                       {new Date(s.createdAt).toLocaleString()}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        onClick={() => {
-                          setSelectedSubmission(s);
-                          setMistakesOnlyFilter(mistakesCount > 0);
-                        }}
-                      >
-                        <span>{t('viewMistakes')}</span>
-                        {mistakesCount > 0 ? (
-                          <span
-                            style={{
-                              background: 'rgba(239, 68, 68, 0.18)',
-                              color: 'var(--error)',
-                              padding: '1px 6px',
-                              borderRadius: 999,
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {mistakesCount}
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              background: 'rgba(34, 197, 94, 0.18)',
-                              color: 'var(--success)',
-                              padding: '1px 6px',
-                              borderRadius: 999,
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                            }}
-                          >
-                            0
-                          </span>
-                        )}
-                      </button>
+                      <div className="table-action-cell">
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                          onClick={() => {
+                            setSelectedSubmission(s);
+                            setMistakesOnlyFilter(mistakesCount > 0);
+                          }}
+                        >
+                          <span>{t('viewMistakes')}</span>
+                          {mistakesCount > 0 ? (
+                            <span
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.18)',
+                                color: 'var(--error)',
+                                padding: '1px 6px',
+                                borderRadius: 999,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {mistakesCount}
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                background: 'rgba(34, 197, 94, 0.18)',
+                                color: 'var(--success)',
+                                padding: '1px 6px',
+                                borderRadius: 999,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              0
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          className="btn-icon-delete"
+                          title={t('deleteSubmission')}
+                          aria-label={t('deleteSubmission')}
+                          onClick={() => handleDeleteSubmission(s._id, s.studentName)}
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -530,7 +586,13 @@ export default function QuizDetail() {
             </div>
 
             {/* Footer */}
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => handleDeleteSubmission(selectedSubmission._id, selectedSubmission.studentName)}
+              >
+                ✕ {t('deleteSubmission')}
+              </button>
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => setSelectedSubmission(null)}

@@ -72,8 +72,16 @@ export const getAllQuizzes = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized' });
     }
 
-    const quizzes = await Quiz.find({ teacher: req.teacher._id })
-      .sort({ createdAt: -1 })
+    const isDeletedQuery = req.query.deleted === 'true' || req.query.status === 'deleted';
+    const filter = {
+      teacher: req.teacher._id,
+      isDeleted: isDeletedQuery ? true : { $ne: true },
+    };
+
+    const sortOrder = isDeletedQuery ? { deletedAt: -1, updatedAt: -1 } : { createdAt: -1 };
+
+    const quizzes = await Quiz.find(filter)
+      .sort(sortOrder)
       .lean();
 
     const withStats = await Promise.all(
@@ -83,7 +91,21 @@ export const getAllQuizzes = async (req, res, next) => {
       })
     );
 
-    res.json({ success: true, data: withStats });
+    const activeCount = await Quiz.countDocuments({
+      teacher: req.teacher._id,
+      isDeleted: { $ne: true },
+    });
+    const deletedCount = await Quiz.countDocuments({
+      teacher: req.teacher._id,
+      isDeleted: true,
+    });
+
+    res.json({
+      success: true,
+      data: withStats,
+      activeCount,
+      deletedCount,
+    });
   } catch (err) {
     next(err);
   }
@@ -94,7 +116,7 @@ export const getQuizByCode = async (req, res, next) => {
   try {
     const quiz = await Quiz.findOne({ shareCode: req.params.shareCode });
 
-    if (!quiz) {
+    if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
     if (!quiz.isActive) {
@@ -157,14 +179,14 @@ export const toggleQuiz = async (req, res, next) => {
   }
 };
 
-// DELETE /api/quizzes/:shareCode — Remove quiz + all related data (Teacher protected)
+// DELETE /api/quizzes/:shareCode — Soft delete first time; permanent delete if already in deleted section (Teacher protected)
 export const deleteQuiz = async (req, res, next) => {
   try {
     if (!req.teacher?._id) {
       return res.status(401).json({ success: false, message: 'Not authorized' });
     }
 
-    const quiz = await Quiz.findOneAndDelete({
+    const quiz = await Quiz.findOne({
       shareCode: req.params.shareCode,
       teacher: req.teacher._id,
     });
@@ -172,10 +194,56 @@ export const deleteQuiz = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
     }
 
-    await Submission.deleteMany({ quizId: quiz._id });
-    await Comment.deleteMany({ quizId: quiz._id });
+    const forcePermanent = req.query.permanent === 'true';
 
-    res.json({ success: true, message: 'Quiz deleted' });
+    // If quiz is already soft-deleted or permanent delete requested, remove permanently with all related data
+    if (quiz.isDeleted || forcePermanent) {
+      await Quiz.findByIdAndDelete(quiz._id);
+      await Submission.deleteMany({ quizId: quiz._id });
+      await Comment.deleteMany({ quizId: quiz._id });
+
+      return res.json({
+        success: true,
+        message: 'Quiz permanently deleted',
+        permanent: true,
+      });
+    }
+
+    // First time deletion: soft-delete into Recently Deleted section, preserving submissions and data
+    quiz.isDeleted = true;
+    quiz.deletedAt = new Date();
+    await quiz.save();
+
+    res.json({
+      success: true,
+      message: 'Quiz moved to recently deleted',
+      permanent: false,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PATCH /api/quizzes/:shareCode/restore — Restore a soft-deleted quiz (Teacher protected)
+export const restoreQuiz = async (req, res, next) => {
+  try {
+    if (!req.teacher?._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    const quiz = await Quiz.findOne({
+      shareCode: req.params.shareCode,
+      teacher: req.teacher._id,
+    });
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
+    }
+
+    quiz.isDeleted = false;
+    quiz.deletedAt = null;
+    await quiz.save();
+
+    res.json({ success: true, message: 'Quiz restored successfully', data: quiz });
   } catch (err) {
     next(err);
   }

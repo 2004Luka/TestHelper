@@ -1,5 +1,6 @@
 import Submission from '../models/Submission.js';
 import Quiz from '../models/Quiz.js';
+import Comment from '../models/Comment.js';
 import { z } from 'zod';
 
 const submitQuizSchema = z.object({
@@ -31,7 +32,7 @@ export const submitQuiz = async (req, res, next) => {
     const { shareCode, studentName, answers } = validationResult.data;
 
     const quiz = await Quiz.findOne({ shareCode });
-    if (!quiz) {
+    if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
     if (!quiz.isActive) {
@@ -164,6 +165,33 @@ export const exportSubmissions = async (req, res, next) => {
       `attachment; filename=${quiz.title.replace(/\s+/g, '_')}_results.csv`
     );
     res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE /api/submissions/:id — Delete a single student submission (Teacher protected)
+export const deleteSubmission = async (req, res, next) => {
+  try {
+    if (!req.teacher?._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    const submission = await Submission.findById(req.params.id);
+    if (!submission) {
+      return res.status(404).json({ success: false, message: 'Submission not found' });
+    }
+
+    // Ensure the submission belongs to a quiz owned by this teacher
+    const quiz = await Quiz.findOne({ _id: submission.quizId, teacher: req.teacher._id });
+    if (!quiz) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this submission' });
+    }
+
+    await Submission.findByIdAndDelete(req.params.id);
+    await Comment.deleteMany({ submissionId: req.params.id });
+
+    res.json({ success: true, message: 'Submission deleted successfully' });
   } catch (err) {
     next(err);
   }

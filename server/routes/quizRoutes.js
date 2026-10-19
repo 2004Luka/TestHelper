@@ -7,6 +7,7 @@ import {
   getFullQuiz,
   toggleQuiz,
   deleteQuiz,
+  restoreQuiz,
 } from '../controllers/quizController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -17,6 +18,7 @@ const upload = multer({ dest: 'uploads/' });
 router.get('/', protect, getAllQuizzes);
 router.get('/:shareCode/full', protect, getFullQuiz);
 router.patch('/:shareCode/toggle', protect, toggleQuiz);
+router.patch('/:shareCode/restore', protect, restoreQuiz);
 router.delete('/:shareCode', protect, deleteQuiz);
 
 router.post(
