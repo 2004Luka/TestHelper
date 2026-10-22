@@ -541,19 +541,19 @@ export default function QuizDetail() {
                             return (
                               <div key={j} className={cls}>
                                 <span className="option-letter">{letters[j] || (j + 1)}</span>
-                                <span style={{ flex: 1 }}>{opt}</span>
+                                <span className="option-text">{opt}</span>
                                 {isCorrectOpt && (
-                                  <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--success)', fontWeight: 700 }}>
+                                  <span className="option-badge" style={{ color: 'var(--success)', fontWeight: 700 }}>
                                     ✓ {t('correctAnswerLabel')}
                                   </span>
                                 )}
                                 {isStudentOpt && !isCorrectOpt && (
-                                  <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--error)', fontWeight: 700 }}>
+                                  <span className="option-badge" style={{ color: 'var(--error)', fontWeight: 700 }}>
                                     ✗ {t('studentAnswerLabel')}
                                   </span>
                                 )}
                                 {isStudentOpt && isCorrectOpt && (
-                                  <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--success)', fontWeight: 700 }}>
+                                  <span className="option-badge" style={{ color: 'var(--success)', fontWeight: 700 }}>
                                     ✓ {t('studentAnswerLabel')}
                                   </span>
                                 )}

@@ -188,14 +188,14 @@ export default function TakeQuiz() {
                   return (
                     <div key={j} className={cls}>
                       <span className="option-letter">{letters[j] || (j + 1)}</span>
-                      <span>{opt}</span>
+                      <span className="option-text">{opt}</span>
                       {opt === q.correctAnswer && (
-                        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--success)' }}>
+                        <span className="option-badge" style={{ color: 'var(--success)' }}>
                           ✓ {t('correctAnswerIs')}
                         </span>
                       )}
                       {opt === q.studentAnswer && opt !== q.correctAnswer && (
-                        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--error)' }}>
+                        <span className="option-badge" style={{ color: 'var(--error)' }}>
                           ✗ {t('yourAnswer')}
                         </span>
                       )}
@@ -333,7 +333,7 @@ export default function TakeQuiz() {
                   onClick={() => handleAnswer(displayIdx, opt)}
                 >
                   <span className="option-letter">{letters[j] || (j + 1)}</span>
-                  <span>{opt}</span>
+                  <span className="option-text">{opt}</span>
                 </div>
               ))}
             </div>

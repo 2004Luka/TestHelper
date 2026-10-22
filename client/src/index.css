@@ -902,6 +902,26 @@ h1, h2, h3, h4, h5, h6 {
   transition: all var(--transition-fast);
   font-size: 0.92rem;
   backdrop-filter: blur(4px);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.option-text,
+.option-item > span:nth-child(2) {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.option-badge,
+.option-item > span:nth-child(3) {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .option-item:hover {
@@ -1805,20 +1825,50 @@ tr:hover td {
     padding: 24px 16px;
   }
 
-  .question-card {
+  .question-card,
+  .review-question-card {
     padding: 16px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  .question-text {
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .option-item {
     padding: 10px 12px;
-    font-size: 0.85rem;
-    gap: 10px;
+    font-size: 0.88rem;
+    gap: 8px 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .option-text,
+  .option-item > span:nth-child(2) {
+    flex: 1 1 0%;
+    min-width: 140px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+  }
+
+  .option-badge,
+  .option-item > span:nth-child(3) {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 0.74rem;
+    white-space: nowrap;
   }
 
   .option-letter {
     width: 26px;
     height: 26px;
     font-size: 0.72rem;
+    flex-shrink: 0;
   }
 
   .result-summary {

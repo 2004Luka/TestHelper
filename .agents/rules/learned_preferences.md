@@ -44,6 +44,11 @@ This file captures patterns learned from user feedback, corrections, and prefere
 - **What the user wanted instead:** A seamless continuous background on mobile without horizontal seams or cutoffs.
 - **Rule learned:** Never use `mask-image` on large fixed backgrounds. Instead, blend rays into the background using native layered `linear-gradient` color stops (`linear-gradient(180deg, transparent 0%, var(--bg-primary) 80%)`). Disable redundant desktop hero glow boxes on mobile screens.
 
+### [2026-10-22] - Mobile Option Item Text Overflow & Badge Clipping
+- **What the AI did wrong:** Long unbroken strings without spaces (e.g. comma-separated lists `ეტრუსკები,ლათინები,საბინები,ლიგურები`) inside flex rows didn't wrap, pushing right-aligned badges (`✓ სწორი პასუხი`) outside the card border.
+- **What the user wanted instead:** Long texts should wrap cleanly inside the card without overflowing or pushing badges off-screen.
+- **Rule learned:** Always apply `overflow-wrap: anywhere; word-break: break-word; min-width: 0;` to option texts, and allow mobile option containers to wrap (`flex-wrap: wrap`) so badges remain securely nested inside cards.
+
 ---
 
 ## Do's & Don'ts (Accumulated)

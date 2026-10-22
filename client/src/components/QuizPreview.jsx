@@ -31,9 +31,9 @@ export default function QuizPreview({ questions }) {
                   className={`option-item ${opt === q.correctAnswer ? 'correct' : ''}`}
                 >
                   <span className="option-letter">{letters[j]}</span>
-                  <span>{opt}</span>
+                  <span className="option-text">{opt}</span>
                   {opt === q.correctAnswer && (
-                    <span style={{ marginLeft: 'auto', fontSize: '0.8rem' }}>✓ Correct</span>
+                    <span className="option-badge">✓ Correct</span>
                   )}
                 </div>
               ))}
