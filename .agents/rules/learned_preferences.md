@@ -24,19 +24,25 @@ This file captures patterns learned from user feedback, corrections, and prefere
 - User wants a learning file that evolves based on their corrections.
 - User prefers surgical, scoped changes over full file rewrites.
 
+### Styling & Visuals
+- Preserving existing class names, color token names, and texts is strictly required — do not rename or invent arbitrary replacements.
+- Ultra-modern UI style: subtle glassmorphism, glowing accents, smooth micro-interactions.
+- Animated backgrounds MUST be performance-optimized for low-end devices: use CSS transforms/opacity with `will-change`, GPU acceleration, and `@media (prefers-reduced-motion: reduce)`.
+- Full responsiveness across all screen sizes (mobile, tablet, desktop) without broken layouts.
+
 ---
 
 ## Corrections History
 
-<!-- 
-Format for new entries:
-### [DATE] - Brief description
-- **What the AI did wrong:** ...
-- **What the user wanted instead:** ...
-- **Rule learned:** ...
--->
+### [2026-10-22] - Background Animation Translation Artifacts
+- **What the AI did wrong:** Translated `body::after` grid and `body::before` via `transform: translate(60px, 60px)`, shifting the whole layer sideways and creating a visible cutoff / gap on the left edge.
+- **What the user wanted instead:** A truly seamless animated background without whole-canvas shifting or edge inaccuracies.
+- **Rule learned:** For pattern/grid animations, always animate `background-position` so patterns tile seamlessly without moving the container element. For ambient glowing gradients, use an oversized container (`inset: -25vmax`) with centered rotation/scaling so edges never clip into view.
 
-_No corrections logged yet. Entries will be added as the user provides feedback._
+### [2026-10-22] - Mobile Background Mask Repeat & Cutoff Seams
+- **What the AI did wrong:** Used CSS `mask-image: radial-gradient(...)` on fixed background layers; on mobile browsers, masks default to repeating or suffer GPU texture tile boundary seams, creating an abrupt horizontal cut line.
+- **What the user wanted instead:** A seamless continuous background on mobile without horizontal seams or cutoffs.
+- **Rule learned:** Never use `mask-image` on large fixed backgrounds. Instead, blend rays into the background using native layered `linear-gradient` color stops (`linear-gradient(180deg, transparent 0%, var(--bg-primary) 80%)`). Disable redundant desktop hero glow boxes on mobile screens.
 
 ---
 
@@ -46,6 +52,8 @@ _No corrections logged yet. Entries will be added as the user provides feedback.
 - Check scope triage (style/client/server) before touching any files.
 - Use `StartLine`/`EndLine` when viewing files > 60 lines.
 - Use `replace_file_content` with minimal diffs, not full rewrites.
+- Animate `background-position` for repeating dot grids / particle meshes.
+- Oversize ambient glow containers (`-25vmax`) to prevent edge cutoffs.
 - Provide clickable file links in all responses.
 - Keep architecture docs in sync after structural changes.
 - Consult `styles.md` before any CSS/visual work.

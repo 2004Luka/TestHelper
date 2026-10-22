@@ -103,6 +103,14 @@ function Navbar() {
             {lang === 'ka' ? '🇬🇪 ქართული' : '🇺🇸 English'}
           </button>
         </div>
+
+        {menuOpen && (
+          <div
+            className="navbar-backdrop"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
       </div>
     </nav>
   );
