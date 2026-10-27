@@ -4,21 +4,14 @@ import Student from '../models/Student.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_quizgen_2026';
 
-const extractToken = (req) => {
-  if (req.cookies && req.cookies.token && req.cookies.token !== 'none') {
-    return req.cookies.token;
-  }
-  if (req.cookies && req.cookies.studentToken && req.cookies.studentToken !== 'none') {
-    return req.cookies.studentToken;
-  }
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    return req.headers.authorization.split(' ')[1];
-  }
-  return null;
-};
 
 export const protect = async (req, res, next) => {
-  const token = extractToken(req);
+  let token = null;
+  if (req.cookies?.token && req.cookies.token !== 'none') {
+    token = req.cookies.token;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, no token provided' });
@@ -26,6 +19,9 @@ export const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role === 'student') {
+      return res.status(403).json({ message: 'Teacher access required' });
+    }
     const teacher = await Teacher.findById(decoded.id).select('-password');
 
     if (!teacher) {
@@ -40,7 +36,12 @@ export const protect = async (req, res, next) => {
 };
 
 export const protectStudent = async (req, res, next) => {
-  const token = extractToken(req);
+  let token = null;
+  if (req.cookies?.studentToken && req.cookies.studentToken !== 'none') {
+    token = req.cookies.studentToken;
+  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
   if (!token) {
     return res.status(401).json({ message: 'Not authorized, student token required' });
@@ -48,6 +49,9 @@ export const protectStudent = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role && decoded.role !== 'student') {
+      return res.status(403).json({ message: 'Student access required' });
+    }
     const student = await Student.findById(decoded.id)
       .select('-password')
       .populate('teacher', 'name subject')
@@ -65,22 +69,48 @@ export const protectStudent = async (req, res, next) => {
 };
 
 export const optionalAuth = async (req, res, next) => {
-  const token = extractToken(req);
-  if (!token) return next();
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.role === 'student') {
-      const student = await Student.findById(decoded.id).select('-password');
-      if (student) req.student = student;
-    } else {
-      const teacher = await Teacher.findById(decoded.id).select('-password');
-      if (teacher) {
-        req.teacher = teacher;
-      } else {
-        const student = await Student.findById(decoded.id).select('-password');
-        if (student) req.student = student;
-      }
+    const studentToken = req.cookies?.studentToken;
+    const teacherToken = req.cookies?.token;
+    const bearer = req.headers?.authorization?.startsWith('Bearer')
+      ? req.headers.authorization.split(' ')[1]
+      : null;
+
+    const checkStudent = async (tok) => {
+      if (!tok || tok === 'none') return false;
+      try {
+        const decoded = jwt.verify(tok, JWT_SECRET);
+        const student = await Student.findById(decoded.id)
+          .select('-password')
+          .populate('teacher', 'name subject')
+          .populate('class', 'name code');
+        if (student) {
+          req.student = student;
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    const checkTeacher = async (tok) => {
+      if (!tok || tok === 'none') return false;
+      try {
+        const decoded = jwt.verify(tok, JWT_SECRET);
+        if (decoded.role === 'student') return false;
+        const teacher = await Teacher.findById(decoded.id).select('-password');
+        if (teacher) {
+          req.teacher = teacher;
+          return true;
+        }
+      } catch {}
+      return false;
+    };
+
+    if (studentToken) await checkStudent(studentToken);
+    if (teacherToken) await checkTeacher(teacherToken);
+    if (bearer && !req.student && !req.teacher) {
+      const isStd = await checkStudent(bearer);
+      if (!isStd) await checkTeacher(bearer);
     }
   } catch {
     // optional, ignore invalid token

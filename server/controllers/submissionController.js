@@ -47,6 +47,7 @@ export const submitQuiz = async (req, res, next) => {
       });
     }
 
+    const student = req.student;
     const trimmedName = student ? student.name : studentName.trim();
 
     // Prevent automated rapid-fire resubmissions (10-second debounce per student name)
