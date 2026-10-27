@@ -27,8 +27,10 @@ TESTGENERATOR/
 │   │   │   ├── FileUpload.jsx      # File upload input component
 │   │   │   ├── Logo.jsx            # QUIZZUP brand logo
 │   │   │   ├── ProtectedRoute.jsx  # Auth-gated route wrapper
+│   │   │   ├── QuizAccessControl.jsx # Test permission & class/student access panel
 │   │   │   ├── QuizPreview.jsx     # Quiz card preview widget
-│   │   │   └── QuizSettings.jsx    # Quiz configuration panel
+│   │   │   ├── QuizSettings.jsx    # Quiz configuration panel
+│   │   │   └── TeacherProfileModal.jsx # Teacher profile, direct registration link, & appearance settings modal
 │   │   ├── context/
 │   │   │   ├── AuthContext.jsx     # Authentication & user session state
 │   │   │   ├── LanguageContext.jsx  # Georgian ('ka') / English ('en') i18n
@@ -37,10 +39,13 @@ TESTGENERATOR/
 │   │   │   ├── CreateQuiz.jsx      # Quiz creation form page
 │   │   │   ├── Dashboard.jsx       # Teacher dashboard & analytics
 │   │   │   ├── Home.jsx            # Landing page
-│   │   │   ├── Login.jsx           # Teacher login form
+│   │   │   ├── Login.jsx           # Teacher & student login form
 │   │   │   ├── QuizDetail.jsx      # Quiz detail & management view
-│   │   │   ├── Register.jsx        # Teacher registration form
-│   │   │   └── TakeQuiz.jsx        # Student quiz-taking interface
+│   │   │   ├── Register.jsx        # Teacher & student registration form
+│   │   │   ├── StudentDashboard.jsx # Student portal (assigned tests & join class)
+│   │   │   ├── TakeQuiz.jsx        # Student quiz-taking interface
+│   │   │   ├── TeacherSettings.jsx # Teacher profile, direct registration link, & settings full page
+│   │   │   └── TeacherStudents.jsx # Teacher classes & students roster management
 │   │   ├── App.jsx                 # Navigation, routing, and layout shell
 │   │   ├── index.css               # Unified QUIZZUP design system & CSS variables
 │   │   ├── main.jsx                # React DOM root & provider wrapper tree
@@ -51,24 +56,32 @@ TESTGENERATOR/
 │   │   └── db.js                   # MongoDB connection setup
 │   ├── controllers/
 │   │   ├── authController.js       # Register, login, token refresh logic
+│   │   ├── classController.js      # Class CRUD & quiz access control
 │   │   ├── commentController.js    # Discussion/comment CRUD
 │   │   ├── quizController.js       # Quiz CRUD & file-based generation
+│   │   ├── studentAuthController.js # Student auth & assigned quiz access
 │   │   └── submissionController.js # Student submission handling & grading
 │   ├── middleware/
 │   │   ├── authMiddleware.js       # JWT verification & request auth guard
 │   │   └── errorHandler.js         # Global error handling middleware
 │   ├── models/
+│   │   ├── Class.js                # Class / group Mongoose schema
 │   │   ├── Comment.js              # Comment/Discussion Mongoose schema
 │   │   ├── Quiz.js                 # Quiz Mongoose schema
+│   │   ├── Student.js              # Student Mongoose schema
 │   │   ├── Submission.js           # Student submission Mongoose schema
 │   │   └── Teacher.js              # Teacher/User Mongoose schema
 │   ├── routes/
 │   │   ├── authRoutes.js           # /api/auth/* route definitions
+│   │   ├── classRoutes.js          # /api/classes/* route definitions
 │   │   ├── commentRoutes.js        # /api/comments/* route definitions
 │   │   ├── quizRoutes.js           # /api/quiz/* route definitions
+│   │   ├── studentRoutes.js        # /api/students/* route definitions
 │   │   └── submissionRoutes.js     # /api/submissions/* route definitions
 │   ├── uploads/                    # Temporary file upload storage
 │   ├── utils/
+│   │   ├── authValidators.js       # Zod schemas for teacher & student registration and login
+│   │   ├── quizAccess.js           # Priority hierarchy quiz access evaluation utility
 │   │   └── wordParser.js           # .docx/.doc parsing utility
 │   ├── server.js                   # Express server bootstrap & middleware pipeline
 │   ├── .env.example                # Environment variable template (SAFE TO READ)

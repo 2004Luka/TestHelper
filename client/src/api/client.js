@@ -3,7 +3,7 @@ const BASE = rawBase.replace(/\/$/, '');
 
 function getHeaders(extraHeaders = {}) {
   const headers = { ...extraHeaders };
-  const token = localStorage.getItem('teacherToken');
+  const token = localStorage.getItem('teacherToken') || localStorage.getItem('studentToken');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

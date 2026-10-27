@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Teacher from '../models/Teacher.js';
 import Quiz from '../models/Quiz.js';
+import { teacherRegisterSchema, teacherLoginSchema } from '../utils/authValidators.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_quizgen_2026';
 
@@ -37,6 +38,7 @@ const sendTokenResponse = (teacher, statusCode, res, message = 'Success') => {
         id: teacher._id,
         name: teacher.name,
         subject: teacher.subject,
+        showInRegistrationList: teacher.showInRegistrationList ?? true,
       },
     });
 };
@@ -45,19 +47,17 @@ const sendTokenResponse = (teacher, statusCode, res, message = 'Success') => {
 // @route POST /api/auth/register
 export const registerTeacher = async (req, res, next) => {
   try {
-    const { name, subject, password } = req.body;
-
-    if (!name || !subject || !password) {
-      return res.status(400).json({ message: 'Please provide name, subject, and password' });
+    const parseResult = teacherRegisterSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        message: parseResult.error.errors[0]?.message || 'Invalid input data',
+      });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
-    }
+    const { name, subject, password } = parseResult.data;
 
-    const trimmedName = name.trim();
     const existingTeacher = await Teacher.findOne({
-      name: { $regex: new RegExp(`^${escapeRegex(trimmedName)}$`, 'i') },
+      name: { $regex: new RegExp(`^${escapeRegex(name)}$`, 'i') },
     });
 
     if (existingTeacher) {
@@ -68,8 +68,8 @@ export const registerTeacher = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const teacher = await Teacher.create({
-      name: trimmedName,
-      subject: subject.trim(),
+      name,
+      subject,
       password: hashedPassword,
     });
 
@@ -93,14 +93,17 @@ export const registerTeacher = async (req, res, next) => {
 // @route POST /api/auth/login
 export const loginTeacher = async (req, res, next) => {
   try {
-    const { name, password } = req.body;
-
-    if (!name || !password) {
-      return res.status(400).json({ message: 'Please provide name and password' });
+    const parseResult = teacherLoginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        message: parseResult.error.errors[0]?.message || 'Invalid input data',
+      });
     }
 
+    const { name, password } = parseResult.data;
+
     const teacher = await Teacher.findOne({
-      name: { $regex: new RegExp(`^${escapeRegex(name.trim())}$`, 'i') },
+      name: { $regex: new RegExp(`^${escapeRegex(name)}$`, 'i') },
     });
 
     if (!teacher) {
@@ -135,5 +138,31 @@ export const getMe = async (req, res) => {
     id: req.teacher._id,
     name: req.teacher.name,
     subject: req.teacher.subject,
+    showInRegistrationList: req.teacher.showInRegistrationList ?? true,
   });
+};
+
+// @desc Update teacher settings (e.g. appearance in student registration)
+// @route PATCH /api/auth/settings
+export const updateTeacherSettings = async (req, res, next) => {
+  try {
+    const { showInRegistrationList } = req.body;
+    if (typeof showInRegistrationList === 'boolean') {
+      req.teacher.showInRegistrationList = showInRegistrationList;
+      await req.teacher.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Settings updated successfully',
+      teacher: {
+        id: req.teacher._id,
+        name: req.teacher.name,
+        subject: req.teacher.subject,
+        showInRegistrationList: req.teacher.showInRegistrationList ?? true,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };

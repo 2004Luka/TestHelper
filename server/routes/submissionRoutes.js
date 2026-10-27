@@ -6,7 +6,7 @@ import {
   exportSubmissions,
   deleteSubmission,
 } from '../controllers/submissionController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -19,7 +19,7 @@ const submitLimiter = rateLimit({
   message: { success: false, message: 'Too many submissions from this IP. Please wait a few minutes before submitting again.' },
 });
 
-router.post('/', submitLimiter, submitQuiz);
+router.post('/', submitLimiter, optionalAuth, submitQuiz);
 router.get('/:shareCode', protect, getSubmissions);
 router.get('/:shareCode/export', protect, exportSubmissions);
 router.delete('/:id', protect, deleteSubmission);

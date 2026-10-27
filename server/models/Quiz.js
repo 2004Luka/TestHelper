@@ -26,6 +26,29 @@ const quizSchema = new mongoose.Schema(
       timeLimit: { type: Number, default: 0 }, // 0 = no limit, value in minutes
       showScoreImmediately: { type: Boolean, default: true },
     },
+    accessMode: {
+      type: String,
+      enum: ['public', 'classes', 'restricted'],
+      default: 'public',
+    },
+    assignedClasses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class',
+      },
+    ],
+    allowedStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
+      },
+    ],
+    blockedStudents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Student',
+      },
+    ],
   },
   { timestamps: true }
 );

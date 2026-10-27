@@ -8,6 +8,7 @@ import {
 } from '../utils/wordParser.js';
 import { nanoid } from 'nanoid';
 import fs from 'fs/promises';
+import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
 
 // POST /api/quizzes — Create quiz from two uploaded Word files (Teacher protected)
 export const createQuiz = async (req, res, next) => {
@@ -119,8 +120,15 @@ export const getQuizByCode = async (req, res, next) => {
     if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
-    if (!quiz.isActive) {
-      return res.status(403).json({ success: false, message: 'This quiz has been disabled by the teacher' });
+    // Check access using priority hierarchy
+    const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
+    if (!accessEvaluation.hasAccess) {
+      return res.status(403).json({
+        success: false,
+        requiresLogin: accessEvaluation.requiresLogin,
+        accessDenied: true,
+        message: accessEvaluation.message,
+      });
     }
 
     // Strip correct answers and internal references before sending to student

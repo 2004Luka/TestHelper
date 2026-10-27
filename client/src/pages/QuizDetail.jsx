@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import Discussion from '../components/Discussion';
+import QuizAccessControl from '../components/QuizAccessControl';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function QuizDetail() {
@@ -202,7 +203,7 @@ export default function QuizDetail() {
             <span>·</span>
             {quiz.isDeleted ? (
               <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                🗑 {t('recentlyDeleted')}
+                {t('recentlyDeleted')}
               </span>
             ) : (
               <span className={`badge ${quiz.isActive ? 'badge-active' : 'badge-inactive'}`}>
@@ -427,6 +428,9 @@ export default function QuizDetail() {
           </table>
         </div>
       )}
+
+      {/* Quiz Access & Student Permissions Control */}
+      <QuizAccessControl shareCode={shareCode} />
 
       {/* Discussion */}
       <Discussion shareCode={shareCode} currentUser="Teacher" currentRole="teacher" />

@@ -11,6 +11,8 @@ import quizRoutes from './routes/quizRoutes.js';
 import submissionRoutes from './routes/submissionRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import classRoutes from './routes/classRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -86,7 +88,16 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many authentication attempts. Please try again after 15 minutes' }
 });
-app.use(['/api/auth/login', '/api/auth/register', '/auth/login', '/auth/register'], authLimiter);
+app.use([
+  '/api/auth/login',
+  '/api/auth/register',
+  '/auth/login',
+  '/auth/register',
+  '/api/students/login',
+  '/api/students/register',
+  '/students/login',
+  '/students/register',
+], authLimiter);
 
 // API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
 app.use('/api/auth', authRoutes);
@@ -97,6 +108,10 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/submissions', submissionRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/comments', commentRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/students', studentRoutes);
+app.use('/api/classes', classRoutes);
+app.use('/classes', classRoutes);
 
 // Health check
 app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok' }));

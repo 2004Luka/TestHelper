@@ -9,7 +9,7 @@ import {
   deleteQuiz,
   restoreQuiz,
 } from '../controllers/quizController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
 const upload = multer({ dest: 'uploads/' });
@@ -31,8 +31,8 @@ router.post(
   createQuiz
 );
 
-// Public student routes
-router.get('/code/:shareCode', getQuizByCode);
-router.get('/:shareCode', getQuizByCode);
+// Public student routes (with optional student/teacher authentication)
+router.get('/code/:shareCode', optionalAuth, getQuizByCode);
+router.get('/:shareCode', optionalAuth, getQuizByCode);
 
 export default router;

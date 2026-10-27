@@ -49,6 +49,22 @@ This file captures patterns learned from user feedback, corrections, and prefere
 - **What the user wanted instead:** Long texts should wrap cleanly inside the card without overflowing or pushing badges off-screen.
 - **Rule learned:** Always apply `overflow-wrap: anywhere; word-break: break-word; min-width: 0;` to option texts, and allow mobile option containers to wrap (`flex-wrap: wrap`) so badges remain securely nested inside cards.
 
+### [2026-10-26] - Strict Prohibition of AI Icons and Emojis
+- **What the AI did wrong:** Added emojis/AI icons (e.g. 🎓, 👨‍🏫, 🏫, 🌐, 🔒, 🟢, 🔴, 🚀, 📝, 👥, 🗑) across navigation, buttons, tab titles, and badges.
+- **What the user wanted instead:** Zero AI icons or emojis anywhere in the application. Clean, elegant, professional typography and clean SVGs or text only.
+- **Rule learned:** NEVER use emojis or AI icons in UI buttons, titles, navigation, badges, or translation texts. Keep the design minimalist, professional, and emoji-free.
+
+### [2026-10-26] - Quiz Access & Permissions Priority Hierarchy
+- **What the AI did wrong:** Contradictory permission checks: tests that were publicly closed (`isActive: false`) remained closed to assigned class students, and opening a whole class did not clear student-level blocks, leaving individual students locked out.
+- **What the user wanted instead:** A strictly unified priority hierarchy where:
+  1. Opening a class opens access for all students in that class, immediately clearing any individual student blocks so no student remains disabled.
+  2. Publicly closed tests (`isActive: false`) remain accessible to assigned classes and individually permitted students.
+  3. All access checkpoints (access control list, student portal list, quiz taking, submission grading) must use the identical evaluation logic with zero contradictions.
+### [2026-10-26] - Full Page for Settings Over Popups/Modals
+- **What the AI did wrong:** Created a small floating modal dialog for profile and settings, which overlapped dashboard content and looked cramped.
+- **What the user wanted instead:** A dedicated, full-page route (`/settings`) for profile, registration link, and settings with spacious layout and clean structure.
+- **Rule learned:** Always prefer dedicated full pages (`/settings`) for core configuration, profile, and settings rather than cramped popup modals, unless a tiny confirmation dialog is specifically requested.
+
 ---
 
 ## Do's & Don'ts (Accumulated)
@@ -65,6 +81,7 @@ This file captures patterns learned from user feedback, corrections, and prefere
 
 ### Never Do ❌
 - Never read `.env`, `.env.local`, or `.env.production`.
+- Never use emojis or AI icons anywhere in UI components, buttons, tabs, badges, or translation files.
 - Never open server files for a styling problem.
 - Never open client/CSS files for an API/DB problem.
 - Never dump entire large files into view.

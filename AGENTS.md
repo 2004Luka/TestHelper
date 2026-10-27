@@ -7,7 +7,13 @@
 
 ---
 
-## 2. Mandatory Scope Triage (Execute Before Any Action)
+## 2. Strict Prohibition on Emojis & AI Icons
+- **Zero Emojis / AI Icons:** NEVER use emojis or AI icon decorations (e.g. 🎓, 👨‍🏫, 🏫, 🌐, 🔒, 🟢, 🔴, 🚀, 📝, 👥, 🗑, etc.) anywhere in UI components, buttons, tabs, labels, navigation links, badges, or translation files.
+- **Professional Typography:** Use clean typography, text labels, and clean SVGs only if an icon is required. Never use emojis as iconography.
+
+---
+
+## 3. Mandatory Scope Triage (Execute Before Any Action)
 
 Before viewing or editing files, the AI MUST classify the user's request using the following logic and strictly limit its inspection to that subsystem:
 

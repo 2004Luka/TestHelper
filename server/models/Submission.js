@@ -10,6 +10,8 @@ const submissionSchema = new mongoose.Schema(
   {
     quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
     studentName: { type: String, required: true },
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', default: null },
+    class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', default: null },
     answers: [answerSchema],
     score: { type: Number, default: 0 },
     totalQuestions: { type: Number, default: 0 },

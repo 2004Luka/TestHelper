@@ -2,6 +2,7 @@ import Submission from '../models/Submission.js';
 import Quiz from '../models/Quiz.js';
 import Comment from '../models/Comment.js';
 import { z } from 'zod';
+import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
 
 const submitQuizSchema = z.object({
   shareCode: z.string().min(1, 'Share code is required').max(32).trim(),
@@ -35,11 +36,18 @@ export const submitQuiz = async (req, res, next) => {
     if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
-    if (!quiz.isActive) {
-      return res.status(403).json({ success: false, message: 'This quiz is no longer active' });
+    // Access control check via priority hierarchy
+    const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
+    if (!accessEvaluation.hasAccess) {
+      return res.status(403).json({
+        success: false,
+        requiresLogin: accessEvaluation.requiresLogin,
+        accessDenied: true,
+        message: accessEvaluation.message,
+      });
     }
 
-    const trimmedName = studentName.trim();
+    const trimmedName = student ? student.name : studentName.trim();
 
     // Prevent automated rapid-fire resubmissions (10-second debounce per student name)
     const recentSub = await Submission.findOne({
@@ -76,6 +84,8 @@ export const submitQuiz = async (req, res, next) => {
     const submission = await Submission.create({
       quizId: quiz._id,
       studentName: trimmedName,
+      student: student ? student._id : null,
+      class: student?.class ? (student.class._id || student.class) : null,
       answers: graded,
       score,
       totalQuestions: quiz.questions.length,

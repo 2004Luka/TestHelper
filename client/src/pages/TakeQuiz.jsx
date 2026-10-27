@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import Logo from '../components/Logo';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function TakeQuiz() {
   const { shareCode } = useParams();
   const { lang, t } = useLanguage();
+  const { student } = useAuth();
   const [quiz, setQuiz] = useState(null);
-  const [studentName, setStudentName] = useState('');
+  const [studentName, setStudentName] = useState(() => student?.name || '');
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
@@ -35,6 +37,13 @@ export default function TakeQuiz() {
     };
     load();
   }, [shareCode]);
+
+  // Sync student name if student logs in
+  useEffect(() => {
+    if (student?.name && !studentName) {
+      setStudentName(student.name);
+    }
+  }, [student, studentName]);
 
   // Start quiz
   const handleStart = () => {
@@ -114,14 +123,28 @@ export default function TakeQuiz() {
   }
 
   if (error && !quiz) {
+    const isLoginOrAccess =
+      error.toLowerCase().includes('log in') ||
+      error.toLowerCase().includes('closed') ||
+      error.toLowerCase().includes('restrict');
+
     return (
       <div className="page">
-        <div className="empty-state">
-          <div className="empty-state-icon">—</div>
+        <div className="card empty-state" style={{ maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: '40px 24px' }}>
           <h2>{error}</h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 8, marginBottom: 24 }}>
             {t('quizClosedMsg')}
           </p>
+          {isLoginOrAccess && (
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/login?role=student" className="btn btn-primary">
+                {t('studentLoginTitle')}
+              </Link>
+              <Link to="/register?role=student" className="btn btn-secondary">
+                {t('navRegister')}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

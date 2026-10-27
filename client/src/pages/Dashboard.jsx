@@ -194,7 +194,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {tab === 'deleted' ? (
                     <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                      🗑 {t('recentlyDeleted')}
+                      {t('recentlyDeleted')}
                     </span>
                   ) : (
                     <span className={`badge ${q.isActive ? 'badge-active' : 'badge-inactive'}`}>
