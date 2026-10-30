@@ -8,33 +8,33 @@ import Submission from '../models/Submission.js';
 import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
 import { studentRegisterSchema, studentLoginSchema } from '../utils/authValidators.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_quizgen_2026';
+const getJwtSecret = () => process.env.JWT_SECRET;
+const jwtOptions = { issuer: 'quizgen-api', audience: 'quizgen-client' };
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  path: '/',
+});
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 const generateStudentToken = (id) => {
-  return jwt.sign({ id, role: 'student' }, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id, role: 'student' }, getJwtSecret(), { ...jwtOptions, expiresIn: '7d' });
 };
 
 const sendStudentTokenResponse = (student, statusCode, res, message = 'Success') => {
   const token = generateStudentToken(student._id);
 
-  const options = {
-    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  };
-
   res
     .status(statusCode)
-    .cookie('studentToken', token, options)
+    .clearCookie('token', getCookieOptions())
+    .cookie('studentToken', token, { ...getCookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 })
     .json({
       success: true,
       message,
-      token,
       student: {
         id: student._id,
         name: student.name,
@@ -73,7 +73,7 @@ export const getTeacherPublicInfo = async (req, res, next) => {
 // GET /api/students/teachers/:teacherId/classes — Public list of classes for a chosen teacher
 export const getTeacherClassesPublic = async (req, res, next) => {
   try {
-    const classes = await Class.find({ teacher: req.params.teacherId }).select('name code description').sort({ name: 1 });
+    const classes = await Class.find({ teacher: req.params.teacherId }).select('name').sort({ name: 1 });
     res.json({ success: true, data: classes });
   } catch (err) {
     next(err);
@@ -87,7 +87,7 @@ export const registerStudent = async (req, res, next) => {
     if (!parseResult.success) {
       return res.status(400).json({
         success: false,
-        message: parseResult.error.errors[0]?.message || 'Invalid registration input',
+        message: (parseResult.error.issues?.[0] || parseResult.error.errors?.[0])?.message || 'Invalid registration input',
       });
     }
 
@@ -117,7 +117,7 @@ export const registerStudent = async (req, res, next) => {
       if (cls) resolvedClassId = cls._id;
     }
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const student = await Student.create({
@@ -146,7 +146,7 @@ export const loginStudent = async (req, res, next) => {
     if (!parseResult.success) {
       return res.status(400).json({
         success: false,
-        message: parseResult.error.errors[0]?.message || 'Invalid login input',
+        message: (parseResult.error.issues?.[0] || parseResult.error.errors?.[0])?.message || 'Invalid login input',
       });
     }
 
@@ -155,6 +155,7 @@ export const loginStudent = async (req, res, next) => {
     const student = await Student.findOne({
       username: { $regex: new RegExp(`^${escapeRegex(username)}$`, 'i') },
     })
+      .select('+password')
       .populate('teacher', 'name subject')
       .populate('class', 'name code');
 
@@ -175,11 +176,9 @@ export const loginStudent = async (req, res, next) => {
 
 // POST /api/students/logout — Clear student cookie
 export const logoutStudent = async (req, res) => {
-  res.cookie('studentToken', 'none', {
-    expires: new Date(Date.now() + 5 * 1000),
-    httpOnly: true,
-  });
-  res.json({ success: true, message: 'Logged out successfully' });
+  res
+    .clearCookie('studentToken', getCookieOptions())
+    .json({ success: true, message: 'Logged out successfully' });
 };
 
 // GET /api/students/me — Student profile (Student protected)
@@ -198,7 +197,11 @@ export const joinClassByCode = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Class code is required' });
     }
 
-    const targetClass = await Class.findOne({ code: classCode.trim().toUpperCase() })
+    const studentTeacherId = req.student.teacher?._id || req.student.teacher;
+    const targetClass = await Class.findOne({
+      code: classCode.trim().toUpperCase(),
+      teacher: studentTeacherId,
+    })
       .populate('teacher', 'name subject');
 
     if (!targetClass) {
@@ -247,10 +250,7 @@ export const getStudentQuizzes = async (req, res, next) => {
 
     // Fetch student's submissions for these quizzes
     const submissions = await Submission.find({
-      $or: [
-        { student: student._id },
-        { studentName: student.name },
-      ],
+      student: student._id,
     }).sort({ createdAt: -1 });
 
     const studentClassIdStr = student.class?._id?.toString() || student.class?.toString() || null;

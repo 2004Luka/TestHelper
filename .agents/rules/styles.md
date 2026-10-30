@@ -89,7 +89,7 @@ All styling MUST use the existing CSS variable tokens defined in `:root` of `ind
 
 ## 3. Mandatory Rules for Style Changes
 
-### DO ✅
+### DO [REQUIRED]
 - Use `var(--token-name)` for all colors, radii, shadows, fonts, and transitions.
 - Add new classes in `index.css` following the existing naming convention (`section-name`, `section-name__element`, `btn-variant`).
 - Support both dark and light themes — if adding a new color variable, define it in both `:root` AND `[data-theme="light"]`.
@@ -97,7 +97,7 @@ All styling MUST use the existing CSS variable tokens defined in `:root` of `ind
 - Use `border: 1px solid var(--border-color)` patterns for card and input borders.
 - Place ALL new CSS in `index.css` — no separate CSS modules or CSS-in-JS.
 
-### DO NOT ❌
+### DO NOT [PROHIBITED]
 - Never hardcode colors like `color: #FFC700` in JSX `style={{}}` — always use CSS classes or `var()`.
 - Never create new `.css` files. All styles live in `index.css`.
 - Never use Tailwind, styled-components, or CSS modules.

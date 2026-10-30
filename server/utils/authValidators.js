@@ -21,8 +21,9 @@ export const teacherRegisterSchema = z.object({
     .regex(safeTextPattern, 'Subject contains disallowed characters'),
   password: z
     .string({ required_error: 'Password is required' })
-    .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password is too long'),
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password is too long')
+    .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Password must be at most 72 UTF-8 bytes'),
 });
 
 export const teacherLoginSchema = z.object({
@@ -53,8 +54,9 @@ export const studentRegisterSchema = z.object({
     .regex(safeUsernamePattern, 'Username must only contain letters, numbers, hyphens, dots, or underscores'),
   password: z
     .string({ required_error: 'Password is required' })
-    .min(5, 'Password must be at least 5 characters')
-    .max(100, 'Password is too long'),
+    .min(8, 'Password must be at least 8 characters')
+    .max(100, 'Password is too long')
+    .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Password must be at most 72 UTF-8 bytes'),
   teacherId: z
     .string({ required_error: 'Teacher is required' })
     .trim()

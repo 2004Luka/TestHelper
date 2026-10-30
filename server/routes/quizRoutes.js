@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import mongoSanitize from 'express-mongo-sanitize';
 import {
   createQuiz,
   getAllQuizzes,
@@ -12,7 +13,10 @@ import {
 import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 10 * 1024 * 1024, files: 2, fields: 4, fieldSize: 64 * 1024 },
+});
 
 // Protected teacher routes (listed first so specific paths like /:shareCode/full are matched correctly)
 router.get('/', protect, getAllQuizzes);
@@ -28,6 +32,7 @@ router.post(
     { name: 'testFile', maxCount: 1 },
     { name: 'answerFile', maxCount: 1 },
   ]),
+  mongoSanitize(),
   createQuiz
 );
 

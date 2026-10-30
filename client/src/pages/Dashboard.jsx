@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [deletedCount, setDeletedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleCopy = (shareCode, id) => {
     navigator.clipboard.writeText(`${window.location.origin}/quiz/${shareCode}`);
@@ -83,6 +84,23 @@ export default function Dashboard() {
     }
   };
 
+  const currentList = tab === 'active' ? activeQuizzes : deletedQuizzes;
+
+  // Filtered by search query
+  const filteredList = useMemo(() => {
+    if (!searchQuery.trim()) return currentList;
+    const q = searchQuery.toLowerCase().trim();
+    return currentList.filter(
+      (item) =>
+        item.title?.toLowerCase().includes(q) ||
+        item.shareCode?.toLowerCase().includes(q)
+    );
+  }, [currentList, searchQuery]);
+
+  const totalSubmissions = useMemo(() => {
+    return activeQuizzes.reduce((acc, q) => acc + (q.submissionCount || 0), 0);
+  }, [activeQuizzes]);
+
   if (loading) {
     return (
       <div className="page">
@@ -94,34 +112,159 @@ export default function Dashboard() {
     );
   }
 
-  const currentList = tab === 'active' ? activeQuizzes : deletedQuizzes;
-
   return (
-    <div className="page">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 className="page-title">
-            {t('dashboardTitle')} {teacher ? `(${teacher.name} • ${teacher.subject})` : ''}
-          </h1>
-          <p className="page-subtitle">{t('dashboardSub')}</p>
+    <div className="page dashboard-page">
+      {/* ── Cohesive Page Header with Aligned Actions & Stats ── */}
+      <div className="page-header-card">
+        <div className="page-header-top-row">
+          <div className="page-header-text">
+            <div className="page-header-title-flex">
+              <h1 className="page-title">{t('dashboardTitle')}</h1>
+              {teacher && (
+                <span className="page-teacher-pill">
+                  {teacher.name} · {teacher.subject}
+                </span>
+              )}
+            </div>
+            <p className="page-subtitle">{t('dashboardSub')}</p>
+          </div>
+
+          <Link to="/create" className="btn btn-primary btn-header-cta">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>{t('navCreate')}</span>
+          </Link>
         </div>
-        <Link to="/create" className="btn btn-primary">
-          + {t('navCreate')}
-        </Link>
+
+        {/* Integrated Header Stats Row */}
+        <div className="page-header-metrics">
+          <div className="header-metric-item">
+            <span className="header-metric-num header-metric-accent">{activeCount}</span>
+            <span className="header-metric-label">{t('activeQuizzesLabel')}</span>
+          </div>
+          <div className="header-metric-sep" />
+          <div className="header-metric-item">
+            <span className="header-metric-num">{totalSubmissions}</span>
+            <span className="header-metric-label">{t('totalSubmissions')}</span>
+          </div>
+          <div className="header-metric-sep" />
+          <div className="header-metric-item">
+            <span className="header-metric-num">{activeCount + deletedCount}</span>
+            <span className="header-metric-label">{t('totalQuizzes')}</span>
+          </div>
+          {deletedCount > 0 && (
+            <>
+              <div className="header-metric-sep" />
+              <div className="header-metric-item header-metric-del">
+                <span className="header-metric-num">{deletedCount}</span>
+                <span className="header-metric-label">{t('recentlyDeleted')}</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Tabs navigation */}
+      {/* ── Search Bar Pill ── */}
+      <div className="dash-search-container">
+        <div className="dash-search-box">
+          <svg className="dash-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            className="dash-search-input"
+            placeholder={t('searchQuizzes')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="dash-search-clear"
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+              aria-label="Clear search"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Hero Quick Access Cards (Inspired by Reference UI) ── */}
+      <div className="dash-quick-cards-grid">
+        {/* Card 1: Create Quiz Hero */}
+        <div className="dash-hero-card dash-hero-card-create">
+          <div className="dash-hero-card-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </div>
+          <div className="dash-hero-card-content">
+            <h3 className="dash-hero-card-title">{t('navCreate')}</h3>
+            <p className="dash-hero-card-desc">{t('createQuizHeroDesc')}</p>
+          </div>
+          <div className="dash-hero-card-footer">
+            <span className="dash-hero-card-tag">Word .docx</span>
+            <Link to="/create" className="dash-hero-card-circle-btn" aria-label={t('navCreate')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+
+        {/* Card 2: Students & Classes Hero */}
+        <div className="dash-hero-card dash-hero-card-students">
+          <div className="dash-hero-card-icon-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div className="dash-hero-card-content">
+            <h3 className="dash-hero-card-title">{t('navStudents')}</h3>
+            <p className="dash-hero-card-desc">{t('studentsHeroDesc')}</p>
+          </div>
+          <div className="dash-hero-card-footer">
+            <span className="dash-hero-card-tag">Rosters & Codes</span>
+            <Link to="/students" className="dash-hero-card-circle-btn" aria-label={t('navStudents')}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Tabs Navigation ── */}
       <div className="dashboard-tabs">
         <button
           className={`dashboard-tab ${tab === 'active' ? 'active' : ''}`}
-          onClick={() => setTab('active')}
+          onClick={() => {
+            setTab('active');
+            setSearchQuery('');
+          }}
         >
           <span>{t('activeQuizzes')}</span>
           <span className="tab-badge">{activeCount}</span>
         </button>
         <button
           className={`dashboard-tab ${tab === 'deleted' ? 'active active-deleted' : ''}`}
-          onClick={() => setTab('deleted')}
+          onClick={() => {
+            setTab('deleted');
+            setSearchQuery('');
+          }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6" />
@@ -146,11 +289,26 @@ export default function Dashboard() {
         </div>
       )}
 
-      {currentList.length === 0 ? (
+      {/* ── Quizzes List ── */}
+      {filteredList.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">—</div>
-          <h3>{tab === 'active' ? t('noQuizzesFound') : t('noDeletedQuizzes')}</h3>
-          {tab === 'active' ? (
+          <div className="empty-state-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <h3>
+            {searchQuery
+              ? 'No matching quizzes found'
+              : tab === 'active'
+              ? t('noQuizzesFound')
+              : t('noDeletedQuizzes')}
+          </h3>
+          {searchQuery ? (
+            <button className="btn btn-secondary btn-sm" onClick={() => setSearchQuery('')}>
+              Clear search
+            </button>
+          ) : tab === 'active' ? (
             <>
               <p style={{ color: 'var(--text-secondary)', marginTop: 8, marginBottom: 20 }}>
                 {t('createSubtitle')}
@@ -166,47 +324,52 @@ export default function Dashboard() {
           )}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {currentList.map((q) => (
-            <div key={q._id} className={`card ${tab === 'deleted' ? 'card-deleted' : ''}`}>
-              <div className="card-header">
-                <div>
+        <div className="dash-quiz-list">
+          {filteredList.map((q) => (
+            <div key={q._id} className={`card dash-quiz-card ${tab === 'deleted' ? 'card-deleted' : ''}`}>
+              <div className="dash-quiz-card-main">
+                <div className="dash-quiz-card-header">
                   <Link
                     to={`/dashboard/${q.shareCode}`}
-                    style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}
+                    className="dash-quiz-title"
                   >
                     {q.title}
                   </Link>
-                  <div className="quiz-meta" style={{ display: 'flex', gap: 12, marginTop: 6, fontSize: '0.85rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
-                    <span>{q.questions.length} {t('questionsText')}</span>
-                    <span>·</span>
-                    <span>{q.submissionCount} {t('totalSubmissions')}</span>
-                    <span>·</span>
-                    <span style={{ fontFamily: 'monospace', color: 'var(--accent)' }}>{q.shareCode}</span>
-                    <span>·</span>
-                    <span>
-                      {tab === 'deleted' && q.deletedAt
-                        ? `${t('deletedOn')}: ${new Date(q.deletedAt).toLocaleDateString()}`
-                        : new Date(q.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className="dash-quiz-status-badge">
+                    {tab === 'deleted' ? (
+                      <span className="badge badge-deleted-pill">
+                        {t('recentlyDeleted')}
+                      </span>
+                    ) : (
+                      <span className={`badge ${q.isActive ? 'badge-active' : 'badge-inactive'}`}>
+                        ● {q.isActive ? t('quizStatusActive') : t('quizStatusClosed')}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {tab === 'deleted' ? (
-                    <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                      {t('recentlyDeleted')}
-                    </span>
-                  ) : (
-                    <span className={`badge ${q.isActive ? 'badge-active' : 'badge-inactive'}`}>
-                      ● {q.isActive ? t('quizStatusActive') : t('quizStatusClosed')}
-                    </span>
-                  )}
+
+                <div className="dash-quiz-meta-row">
+                  <span className="dash-quiz-meta-item">
+                    <strong>{q.questions.length}</strong> {t('questionsText')}
+                  </span>
+                  <span className="dash-quiz-meta-divider">·</span>
+                  <span className="dash-quiz-meta-item">
+                    <strong>{q.submissionCount}</strong> {t('totalSubmissions')}
+                  </span>
+                  <span className="dash-quiz-meta-divider">·</span>
+                  <span className="dash-quiz-code-badge">{q.shareCode}</span>
+                  <span className="dash-quiz-meta-divider">·</span>
+                  <span className="dash-quiz-meta-date">
+                    {tab === 'deleted' && q.deletedAt
+                      ? `${t('deletedOn')}: ${new Date(q.deletedAt).toLocaleDateString()}`
+                      : new Date(q.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
 
-              {/* Quiz Link with Copy Button (only shown for active quizzes) */}
+              {/* Share link box on active items */}
               {tab === 'active' && (
-                <div className="share-link-box" style={{ marginTop: 12 }}>
+                <div className="share-link-box dash-quiz-share-box">
                   <input
                     value={`${window.location.origin}/quiz/${q.shareCode}`}
                     readOnly
@@ -222,8 +385,8 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="btn-group" style={{ marginTop: 12 }}>
+              {/* Responsive Action Buttons */}
+              <div className="dash-quiz-actions">
                 <Link to={`/dashboard/${q.shareCode}`} className="btn btn-secondary btn-sm">
                   {t('studentResults')} ({q.submissionCount})
                 </Link>
@@ -261,7 +424,7 @@ export default function Dashboard() {
                       className="btn btn-danger btn-sm"
                       onClick={() => handlePermanentDelete(q.shareCode)}
                     >
-                      ✕ {t('deletePermanently')}
+                      {t('deletePermanently')}
                     </button>
                   </>
                 )}
@@ -273,4 +436,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

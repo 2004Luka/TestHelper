@@ -1,10 +1,16 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Teacher from '../models/Teacher.js';
-import Quiz from '../models/Quiz.js';
 import { teacherRegisterSchema, teacherLoginSchema } from '../utils/authValidators.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_quizgen_2026';
+const getJwtSecret = () => process.env.JWT_SECRET;
+const jwtOptions = { issuer: 'quizgen-api', audience: 'quizgen-client' };
+const getCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  path: '/',
+});
 
 /**
  * Escape special regex characters to prevent ReDoS attacks.
@@ -14,26 +20,19 @@ function escapeRegex(str) {
 }
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
+  return jwt.sign({ id, role: 'teacher' }, getJwtSecret(), { ...jwtOptions, expiresIn: '7d' });
 };
 
 // Helper function to send token in HTTP-Only cookie & JSON response
 const sendTokenResponse = (teacher, statusCode, res, message = 'Success') => {
   const token = generateToken(teacher._id);
 
-  const options = {
-    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-  };
-
   res
     .status(statusCode)
-    .cookie('token', token, options)
+    .clearCookie('studentToken', getCookieOptions())
+    .cookie('token', token, { ...getCookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 })
     .json({
       message,
-      token,
       teacher: {
         id: teacher._id,
         name: teacher.name,
@@ -50,7 +49,7 @@ export const registerTeacher = async (req, res, next) => {
     const parseResult = teacherRegisterSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
-        message: parseResult.error.errors[0]?.message || 'Invalid input data',
+        message: (parseResult.error.issues?.[0] || parseResult.error.errors?.[0])?.message || 'Invalid input data',
       });
     }
 
@@ -73,16 +72,6 @@ export const registerTeacher = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    // Check if this is the first registered teacher.
-    // Automatically assign all existing unowned quizzes to the first teacher.
-    const totalTeachers = await Teacher.countDocuments();
-    if (totalTeachers === 1) {
-      await Quiz.updateMany(
-        { $or: [{ teacher: { $exists: false } }, { teacher: null }] },
-        { $set: { teacher: teacher._id } }
-      );
-    }
-
     sendTokenResponse(teacher, 201, res, 'Registration successful');
   } catch (error) {
     next(error);
@@ -96,7 +85,7 @@ export const loginTeacher = async (req, res, next) => {
     const parseResult = teacherLoginSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
-        message: parseResult.error.errors[0]?.message || 'Invalid input data',
+        message: (parseResult.error.issues?.[0] || parseResult.error.errors?.[0])?.message || 'Invalid input data',
       });
     }
 
@@ -104,7 +93,7 @@ export const loginTeacher = async (req, res, next) => {
 
     const teacher = await Teacher.findOne({
       name: { $regex: new RegExp(`^${escapeRegex(name)}$`, 'i') },
-    });
+    }).select('+password');
 
     if (!teacher) {
       return res.status(401).json({ message: 'Invalid teacher name or password' });
@@ -124,11 +113,9 @@ export const loginTeacher = async (req, res, next) => {
 // @desc Log out teacher & clear cookie
 // @route POST /api/auth/logout
 export const logoutTeacher = async (req, res) => {
-  res.cookie('token', 'none', {
-    expires: new Date(Date.now() + 5 * 1000),
-    httpOnly: true,
-  });
-  res.json({ success: true, message: 'Logged out successfully' });
+  res
+    .clearCookie('token', getCookieOptions())
+    .json({ success: true, message: 'Logged out successfully' });
 };
 
 // @desc Get logged-in teacher profile
@@ -140,6 +127,27 @@ export const getMe = async (req, res) => {
     subject: req.teacher.subject,
     showInRegistrationList: req.teacher.showInRegistrationList ?? true,
   });
+};
+
+// GET /api/auth/session — Resolve either role without making an unauthenticated role request fail.
+export const getSession = async (req, res) => {
+  if (req.teacher) {
+    return res.json({
+      role: 'teacher',
+      user: {
+        id: req.teacher._id,
+        name: req.teacher.name,
+        subject: req.teacher.subject,
+        showInRegistrationList: req.teacher.showInRegistrationList ?? true,
+      },
+    });
+  }
+
+  if (req.student) {
+    return res.json({ role: 'student', user: req.student });
+  }
+
+  return res.json({ role: null, user: null });
 };
 
 // @desc Update teacher settings (e.g. appearance in student registration)

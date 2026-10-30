@@ -18,6 +18,7 @@ TESTGENERATOR/
 │       ├── styles.md               # Style system tokens, conventions & rules
 │       └── triage_decision_tree.md # Style vs Client vs Server scope isolation
 ├── AGENTS.md                       # Root instructions loaded by AI agents every turn
+├── STRUCTURE.md                    # Fast AI structure map & zero-credit dispatch table
 ├── client/                         # Frontend SPA (Vite + React 18 + Vanilla CSS)
 │   ├── src/
 │   │   ├── api/
@@ -95,6 +96,7 @@ TESTGENERATOR/
 
 | Problem Domain | Primary Target Files | Secondary References |
 |:---|:---|:---|
+| **Fast AI Dispatch & Low Credits** | `STRUCTURE.md` | `AGENTS.md`, `.agents/rules/credit_optimization.md` |
 | **Styles & Themes** | `client/src/index.css`, `client/src/context/StyleContext.jsx` | `.agents/rules/styles.md`, relevant component JSX |
 | **Internationalization (i18n)** | `client/src/translations.js`, `client/src/context/LanguageContext.jsx` | Relevant page/component |
 | **Authentication (Frontend)** | `client/src/context/AuthContext.jsx`, `client/src/pages/Login.jsx` | `client/src/components/ProtectedRoute.jsx` |

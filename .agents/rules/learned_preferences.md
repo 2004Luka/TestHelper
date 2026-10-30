@@ -10,8 +10,10 @@ This file captures patterns learned from user feedback, corrections, and prefere
 
 ### General
 - User prefers concise responses — no filler or disclaimers.
-- User values credit/token efficiency — avoid unnecessary file reads and rewrites.
+- User values credit/token efficiency — avoid unnecessary file reads, recursive directory searches, and multi-file dumps.
 - User wants the AI to check scope (style vs client vs server) BEFORE doing anything.
+- User wants AI to use `STRUCTURE.md` for fast onboarding with minimal token consumption.
+- User wants rules to be modular: load ONLY the rule needed for the task, never all rule files simultaneously.
 
 ### Code Style
 - All CSS goes in a single `index.css` file — no CSS modules, no styled-components, no Tailwind.
@@ -65,23 +67,31 @@ This file captures patterns learned from user feedback, corrections, and prefere
 - **What the user wanted instead:** A dedicated, full-page route (`/settings`) for profile, registration link, and settings with spacious layout and clean structure.
 - **Rule learned:** Always prefer dedicated full pages (`/settings`) for core configuration, profile, and settings rather than cramped popup modals, unless a tiny confirmation dialog is specifically requested.
 
+### [2026-10-28] - Maximally Low Credits & Fast Structure Navigation
+- **What the AI did wrong:** Wasted excessive credits and tokens by reading entire files, scanning directories, and loading multiple rule files simultaneously.
+- **What the user wanted instead:** Maximum token and credit efficiency: fast onboarding via `STRUCTURE.md`, direct line-range file inspection, modular rule loading (only the 1 relevant rule file), and keeping all rule files updated.
+- **Rule learned:** Never load all rule files at once. Use `STRUCTURE.md` to find the exact target file and load ONLY the single matching rule file for the task. Always view <= 60-80 lines at a time.
+
 ---
 
 ## Do's & Don'ts (Accumulated)
 
-### Always Do ✅
+### Always Do [REQUIRED]
+- Open [STRUCTURE.md](file:///d:/TESTGENERATOR/STRUCTURE.md) first to get instant file paths and eliminate token-burning searches.
 - Check scope triage (style/client/server) before touching any files.
-- Use `StartLine`/`EndLine` when viewing files > 60 lines.
-- Use `replace_file_content` with minimal diffs, not full rewrites.
+- Load ONLY the single relevant rule file matching the task domain.
+- Use `StartLine`/`EndLine` when viewing files > 60 lines (target <= 60-80 lines).
+- Use `edit_file` / `replace_file_content` with minimal diffs, not full rewrites.
 - Animate `background-position` for repeating dot grids / particle meshes.
 - Oversize ambient glow containers (`-25vmax`) to prevent edge cutoffs.
 - Provide clickable file links in all responses.
-- Keep architecture docs in sync after structural changes.
+- Keep architecture docs in sync after structural changes (`STRUCTURE.md` and `codebase_architecture.md`).
 - Consult `styles.md` before any CSS/visual work.
 
-### Never Do ❌
+### Never Do [PROHIBITED]
 - Never read `.env`, `.env.local`, or `.env.production`.
-- Never use emojis or AI icons anywhere in UI components, buttons, tabs, badges, or translation files.
+- Never use emojis or AI icons anywhere in UI components, buttons, tabs, badges, translation files, or rule files.
+- Never load all rule files into context simultaneously.
 - Never open server files for a styling problem.
 - Never open client/CSS files for an API/DB problem.
 - Never dump entire large files into view.

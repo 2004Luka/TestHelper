@@ -1,6 +1,7 @@
 import Class from '../models/Class.js';
 import Student from '../models/Student.js';
 import Quiz from '../models/Quiz.js';
+import mongoose from 'mongoose';
 import { nanoid } from 'nanoid';
 import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
 
@@ -237,6 +238,14 @@ export const updateQuizAccessControl = async (req, res, next) => {
 
     // Toggle whole class open or closed
     if (toggleClassId) {
+      if (!mongoose.Types.ObjectId.isValid(toggleClassId)) {
+        return res.status(400).json({ success: false, message: 'Invalid class ID' });
+      }
+      const targetClass = await Class.findOne({ _id: toggleClassId, teacher: req.teacher._id }).select('_id');
+      if (!targetClass) {
+        return res.status(404).json({ success: false, message: 'Class not found' });
+      }
+
       const clsIdStr = toggleClassId.toString();
       const currentAssigned = quiz.assignedClasses.map((id) => id.toString());
       const shouldOpen = typeof openClass === 'boolean' ? openClass : !currentAssigned.includes(clsIdStr);
@@ -246,13 +255,13 @@ export const updateQuizAccessControl = async (req, res, next) => {
           quiz.assignedClasses.push(toggleClassId);
         }
         // Hierarchy rule: Opening class clears individual blocks for all students in this class
-        const classStudents = await Student.find({ class: toggleClassId }).select('_id');
+        const classStudents = await Student.find({ teacher: req.teacher._id, class: toggleClassId }).select('_id');
         const classStudentIds = new Set(classStudents.map((s) => s._id.toString()));
         quiz.blockedStudents = (quiz.blockedStudents || []).filter((id) => !classStudentIds.has(id.toString()));
       } else {
         quiz.assignedClasses = quiz.assignedClasses.filter((id) => id.toString() !== clsIdStr);
         // Hierarchy rule: Closing class clears allowed overrides for all students in this class
-        const classStudents = await Student.find({ class: toggleClassId }).select('_id');
+        const classStudents = await Student.find({ teacher: req.teacher._id, class: toggleClassId }).select('_id');
         const classStudentIds = new Set(classStudents.map((s) => s._id.toString()));
         quiz.allowedStudents = (quiz.allowedStudents || []).filter((id) => !classStudentIds.has(id.toString()));
       }
@@ -276,6 +285,14 @@ export const updateQuizAccessControl = async (req, res, next) => {
 
     // Toggle specific student open, close, or reset to default class rule
     if (toggleStudentId) {
+      if (!mongoose.Types.ObjectId.isValid(toggleStudentId)) {
+        return res.status(400).json({ success: false, message: 'Invalid student ID' });
+      }
+      const targetStudent = await Student.findOne({ _id: toggleStudentId, teacher: req.teacher._id }).select('_id');
+      if (!targetStudent) {
+        return res.status(404).json({ success: false, message: 'Student not found' });
+      }
+
       const sIdStr = toggleStudentId.toString();
 
       // Clear from allowed & blocked first

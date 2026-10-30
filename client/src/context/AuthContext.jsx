@@ -4,132 +4,77 @@ import api from '../api/client';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [teacher, setTeacher] = useState(() => {
-    try {
-      const saved = localStorage.getItem('teacherProfile');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('teacherToken') || null);
-
-  const [student, setStudent] = useState(() => {
-    try {
-      const saved = localStorage.getItem('studentProfile');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [studentToken, setStudentToken] = useState(() => localStorage.getItem('studentToken') || null);
-
+  const [teacher, setTeacher] = useState(null);
+  const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function verifySessions() {
-      // 1. Check teacher session
-      const savedTeacherToken = localStorage.getItem('teacherToken');
-      if (savedTeacherToken || teacher) {
-        try {
-          const data = await api.get('/auth/me');
-          setTeacher(data);
-          localStorage.setItem('teacherProfile', JSON.stringify(data));
-        } catch {
-          localStorage.removeItem('teacherToken');
-          localStorage.removeItem('teacherProfile');
-          setToken(null);
-          setTeacher(null);
-        }
+      try {
+        localStorage.removeItem('teacherToken');
+        localStorage.removeItem('studentToken');
+        localStorage.removeItem('teacherProfile');
+        localStorage.removeItem('studentProfile');
+      } catch {
+        // Session state remains in memory when browser storage is unavailable.
       }
 
-      // 2. Check student session
-      const savedStudentToken = localStorage.getItem('studentToken');
-      if (savedStudentToken || student) {
-        try {
-          const res = await api.get('/students/me');
-          if (res?.data) {
-            setStudent(res.data);
-            localStorage.setItem('studentProfile', JSON.stringify(res.data));
-          }
-        } catch {
-          localStorage.removeItem('studentToken');
-          localStorage.removeItem('studentProfile');
-          setStudentToken(null);
+      try {
+        const session = await api.get('/auth/session');
+        if (session.role === 'teacher') {
+          setTeacher(session.user);
           setStudent(null);
+        } else if (session.role === 'student') {
+          setTeacher(null);
+          setStudent(session.user);
+        } else {
+          setTeacher(null);
+          setStudent(null);
+          await Promise.allSettled([api.post('/auth/logout'), api.post('/students/logout')]);
         }
+      } catch {
+        setTeacher(null);
+        setStudent(null);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     verifySessions();
   }, []);
 
-  const login = (newToken, teacherData) => {
-    // If logging in as teacher, clear student session to avoid conflicts
-    studentLogout();
-    if (newToken) {
-      localStorage.setItem('teacherToken', newToken);
-      setToken(newToken);
-    }
-    if (teacherData) {
-      localStorage.setItem('teacherProfile', JSON.stringify(teacherData));
-      setTeacher(teacherData);
-    }
+  const login = (teacherData) => {
+    setStudent(null);
+    setTeacher(teacherData || null);
   };
 
   const logout = async () => {
-    try {
-      await api.post('/auth/logout');
-    } catch {
-      // ignore
-    }
-    localStorage.removeItem('teacherToken');
-    localStorage.removeItem('teacherProfile');
-    setToken(null);
+    await Promise.allSettled([api.post('/auth/logout'), api.post('/students/logout')]);
     setTeacher(null);
+    setStudent(null);
   };
 
-  const studentLogin = (newToken, studentData) => {
-    // If logging in as student, clear teacher session
-    logout();
-    if (newToken) {
-      localStorage.setItem('studentToken', newToken);
-      setStudentToken(newToken);
-    }
-    if (studentData) {
-      localStorage.setItem('studentProfile', JSON.stringify(studentData));
-      setStudent(studentData);
-    }
+  const studentLogin = (studentData) => {
+    setTeacher(null);
+    setStudent(studentData || null);
   };
 
   const studentLogout = async () => {
-    try {
-      await api.post('/students/logout');
-    } catch {
-      // ignore
-    }
-    localStorage.removeItem('studentToken');
-    localStorage.removeItem('studentProfile');
-    setStudentToken(null);
+    await Promise.allSettled([api.post('/students/logout'), api.post('/auth/logout')]);
     setStudent(null);
+    setTeacher(null);
   };
 
   const updateStudentClass = (classData) => {
     setStudent((prev) => {
       if (!prev) return prev;
-      const updated = { ...prev, class: classData };
-      localStorage.setItem('studentProfile', JSON.stringify(updated));
-      return updated;
+      return { ...prev, class: classData };
     });
   };
 
   const updateTeacherProfile = (updatedData) => {
     setTeacher((prev) => {
-      const merged = { ...prev, ...updatedData };
-      localStorage.setItem('teacherProfile', JSON.stringify(merged));
-      return merged;
+      return { ...prev, ...updatedData };
     });
   };
 
@@ -137,9 +82,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         teacher,
-        token,
         student,
-        studentToken,
         userRole: teacher ? 'teacher' : student ? 'student' : null,
         loading,
         login,

@@ -26,7 +26,6 @@ export default function Register() {
   const [studentPassword, setStudentPassword] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
   const [selectedClassId, setSelectedClassId] = useState('');
-  const [classCodeInput, setClassCodeInput] = useState('');
 
   // Dropdown data
   const [teachersList, setTeachersList] = useState([]);
@@ -108,8 +107,8 @@ export default function Register() {
         password: teacherPassword,
       });
 
-      if (res.token && res.teacher) {
-        login(res.token, res.teacher);
+      if (res.teacher) {
+        login(res.teacher);
         navigate('/dashboard');
       } else {
         navigate('/login', { state: { message: t('regSuccessMsg') } });
@@ -137,10 +136,9 @@ export default function Register() {
         password: studentPassword,
         teacherId: selectedTeacherId,
         classId: selectedClassId || undefined,
-        classCode: classCodeInput.trim() || undefined,
       });
 
-      studentLogin(res.token, res.student);
+      studentLogin(res.student);
       navigate('/student/portal');
     } catch (err) {
       setError(err.message || 'Student registration failed. Please try again.');
@@ -282,34 +280,17 @@ export default function Register() {
                 <label>{t('selectClass')}</label>
                 <select
                   value={selectedClassId}
-                  onChange={(e) => {
-                    setSelectedClassId(e.target.value);
-                    if (e.target.value) setClassCodeInput('');
-                  }}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
                 >
                   <option value="">{t('chooseClassPrompt')}</option>
                   {classesList.map((cls) => (
                     <option key={cls._id} value={cls._id}>
-                      {cls.name} ({cls.code})
+                      {cls.name}
                     </option>
                   ))}
                 </select>
               </div>
             )}
-
-            <div className="form-group-inline">
-              <label>{t('classCode')}</label>
-              <input
-                type="text"
-                placeholder={t('classCodePlaceholder')}
-                value={classCodeInput}
-                onChange={(e) => {
-                  setClassCodeInput(e.target.value);
-                  if (e.target.value) setSelectedClassId('');
-                }}
-                style={{ textTransform: 'uppercase' }}
-              />
-            </div>
 
             <button
               type="submit"

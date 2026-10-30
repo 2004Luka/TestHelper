@@ -56,12 +56,13 @@ export const createQuiz = async (req, res, next) => {
       settings: parsedSettings,
     });
 
-    // Cleanup temp uploads
-    await fs.unlink(testFile.path).catch(() => {});
-    await fs.unlink(answerFile.path).catch(() => {});
+    // Cleanup temporary uploads after a successful parse and save.
+    await Promise.all([fs.unlink(testFile.path), fs.unlink(answerFile.path)]).catch(() => {});
 
     res.status(201).json({ success: true, data: quiz });
   } catch (err) {
+    const uploadedFiles = Object.values(req.files || {}).flat();
+    await Promise.all(uploadedFiles.map((file) => fs.unlink(file.path).catch(() => {})));
     next(err);
   }
 };
@@ -120,6 +121,12 @@ export const getQuizByCode = async (req, res, next) => {
     if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
+    if (req.student) {
+      const studentTeacherId = req.student.teacher?._id || req.student.teacher;
+      if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+        return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+      }
+    }
     // Check access using priority hierarchy
     const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
     if (!accessEvaluation.hasAccess) {
@@ -131,11 +138,21 @@ export const getQuizByCode = async (req, res, next) => {
       });
     }
 
-    // Strip correct answers and internal references before sending to student
-    const safe = quiz.toObject();
-    delete safe.teacher;
-    delete safe.__v;
-    safe.questions = safe.questions.map(({ correctAnswer, ...q }) => q);
+    // Return an explicit student-safe shape; never expose teacher or roster IDs.
+    const safe = {
+      _id: quiz._id,
+      title: quiz.title,
+      shareCode: quiz.shareCode,
+      isActive: quiz.isActive,
+      settings: quiz.settings,
+      accessMode: quiz.accessMode,
+      createdAt: quiz.createdAt,
+      questions: quiz.questions.map((question) => {
+        const safeQuestion = question.toObject();
+        delete safeQuestion.correctAnswer;
+        return safeQuestion;
+      }),
+    };
 
     res.json({ success: true, data: safe });
   } catch (err) {

@@ -95,9 +95,8 @@ export default function QuizDetail() {
     try {
       const rawBase = import.meta.env.VITE_API_URL || '/api';
       const BASE = rawBase.replace(/\/$/, '');
-      const token = localStorage.getItem('teacherToken');
       const res = await fetch(`${BASE}/submissions/${shareCode}/export`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {},
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to export CSV');

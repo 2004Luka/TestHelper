@@ -29,7 +29,17 @@ export default function TakeQuiz() {
     const load = async () => {
       try {
         const res = await api.get(`/quizzes/${shareCode}`);
-        setQuiz(res.data);
+        if (!res.data || !Array.isArray(res.data.questions) || res.data.questions.length === 0) {
+          throw new Error('This quiz has no usable questions.');
+        }
+
+        setQuiz({
+          ...res.data,
+          questions: res.data.questions.map((question) => ({
+            ...question,
+            options: Array.isArray(question?.options) ? question.options : [],
+          })),
+        });
       } catch (err) {
         setError(err.message);
       }
@@ -201,7 +211,7 @@ export default function TakeQuiz() {
             </div>
             <div className="question-text">{q.questionText}</div>
 
-            {q.options.length > 0 ? (
+            {Array.isArray(q.options) && q.options.length > 0 ? (
               <div className="option-list">
                 {q.options.map((opt, j) => {
                   let cls = 'option-item';
@@ -349,7 +359,7 @@ export default function TakeQuiz() {
             />
           ) : (
             <div className="option-list">
-              {q.options.map((opt, j) => (
+              {(Array.isArray(q.options) ? q.options : []).map((opt, j) => (
                 <div
                   key={j}
                   className={`option-item ${answers[displayIdx] === opt ? 'selected' : ''}`}

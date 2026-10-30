@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,6 +12,7 @@ export default function TeacherStudents() {
   const [classes, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // New class modal / form
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -110,33 +111,93 @@ export default function TeacherStudents() {
     }
   };
 
+  // Filtered classes & students
+  const filteredClasses = useMemo(() => {
+    if (!searchQuery.trim()) return classes;
+    const q = searchQuery.toLowerCase().trim();
+    return classes.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.code?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q)
+    );
+  }, [classes, searchQuery]);
+
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery.trim()) return students;
+    const q = searchQuery.toLowerCase().trim();
+    return students.filter(
+      (s) =>
+        s.name?.toLowerCase().includes(q) ||
+        s.username?.toLowerCase().includes(q) ||
+        s.class?.name?.toLowerCase().includes(q) ||
+        s.class?.code?.toLowerCase().includes(q)
+    );
+  }, [students, searchQuery]);
+
+  // Initials generator for student avatars
+  const getInitials = (name) => {
+    if (!name) return 'S';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
   return (
-    <div className="page">
-      <div className="page-header" style={{ marginBottom: 24 }}>
-        <div>
-          <h1 className="page-title">{t('navStudents')}</h1>
-          <p className="page-subtitle">{t('teacherStudentsSubtitle')}</p>
+    <div className="page students-page">
+      {/* ── Cohesive Page Header with Aligned Actions & Stats ── */}
+      <div className="page-header-card">
+        <div className="page-header-top-row">
+          <div className="page-header-text">
+            <div className="page-header-title-flex">
+              <h1 className="page-title">{t('navStudents')}</h1>
+              {teacher && (
+                <span className="page-teacher-pill">
+                  {teacher.name} · {teacher.subject}
+                </span>
+              )}
+            </div>
+            <p className="page-subtitle">{t('teacherStudentsSubtitle')}</p>
+          </div>
+
+          <button
+            className="btn btn-primary btn-header-cta"
+            onClick={() => {
+              setShowCreateModal(true);
+              setCreateError('');
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span>{t('createClassBtn')}</span>
+          </button>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={() => {
-            setShowCreateModal(true);
-            setCreateError('');
-          }}
-        >
-          {t('createClassBtn')}
-        </button>
+
+        {/* Integrated Header Stats Row */}
+        <div className="page-header-metrics">
+          <div className="header-metric-item">
+            <span className="header-metric-num header-metric-accent">{classes.length}</span>
+            <span className="header-metric-label">{t('totalClasses')}</span>
+          </div>
+          <div className="header-metric-sep" />
+          <div className="header-metric-item">
+            <span className="header-metric-num">{students.length}</span>
+            <span className="header-metric-label">{t('totalStudents')}</span>
+          </div>
+        </div>
       </div>
 
-      {/* Teacher Direct Registration Link Card */}
+      {/* ── Teacher Direct Registration Link Card ── */}
       {teacher && (
-        <div className="card" style={{ marginBottom: 24, padding: '18px 20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 8 }}>
+        <div className="card reg-link-card">
+          <div className="reg-link-card-header">
             <div>
-              <strong style={{ fontSize: '1rem', color: 'var(--text-primary)' }}>
+              <strong className="reg-link-title">
                 {t('registrationLinkTitle')}
               </strong>
-              <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', marginTop: 4, marginBottom: 0 }}>
+              <p className="reg-link-desc">
                 {t('registrationLinkDesc')}
               </p>
             </div>
@@ -148,13 +209,12 @@ export default function TeacherStudents() {
             </Link>
           </div>
 
-          <div className="share-link-box" style={{ margin: '10px 0 0' }}>
+          <div className="share-link-box dash-quiz-share-box" style={{ margin: '12px 0 0' }}>
             <input
               type="text"
               readOnly
               value={`${window.location.origin}/register?role=student&teacher=${teacher?.id || teacher?._id}`}
               onClick={(e) => e.target.select()}
-              style={{ fontSize: '0.84rem' }}
             />
             <button
               type="button"
@@ -171,18 +231,54 @@ export default function TeacherStudents() {
         </div>
       )}
 
-      {/* Navigation Sub-Tabs */}
-      <div className="dashboard-tabs" style={{ marginBottom: 24 }}>
+      {/* ── Search Bar Pill ── */}
+      <div className="dash-search-container">
+        <div className="dash-search-box">
+          <svg className="dash-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            className="dash-search-input"
+            placeholder={activeTab === 'classes' ? t('searchClasses') : t('searchStudents')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="dash-search-clear"
+              onClick={() => setSearchQuery('')}
+              title="Clear search"
+              aria-label="Clear search"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Navigation Sub-Tabs ── */}
+      <div className="dashboard-tabs">
         <button
           className={`dashboard-tab ${activeTab === 'classes' ? 'active' : ''}`}
-          onClick={() => setActiveTab('classes')}
+          onClick={() => {
+            setActiveTab('classes');
+            setSearchQuery('');
+          }}
         >
           <span>{t('myClassesTitle')}</span>
           <span className="tab-badge">{classes.length}</span>
         </button>
         <button
           className={`dashboard-tab ${activeTab === 'students' ? 'active' : ''}`}
-          onClick={() => setActiveTab('students')}
+          onClick={() => {
+            setActiveTab('students');
+            setSearchQuery('');
+          }}
         >
           <span>{t('studentListTitle')}</span>
           <span className="tab-badge">{students.length}</span>
@@ -190,27 +286,34 @@ export default function TeacherStudents() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
-          Loading...
+        <div className="loading" style={{ padding: 40 }}>
+          <div className="spinner" />
+          {t('btnProcessing')}
         </div>
       ) : activeTab === 'classes' ? (
-        /* Classes View */
+        /* ── Classes View ── */
         <div>
-          {classes.length === 0 ? (
+          {filteredClasses.length === 0 ? (
             <div className="card empty-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
               <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-                {t('noClassesYet')}
+                {searchQuery ? 'No classes match your search' : t('noClassesYet')}
               </p>
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowCreateModal(true)}
-              >
-                {t('createClassBtn')}
-              </button>
+              {searchQuery ? (
+                <button className="btn btn-secondary btn-sm" onClick={() => setSearchQuery('')}>
+                  Clear search
+                </button>
+              ) : (
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  {t('createClassBtn')}
+                </button>
+              )}
             </div>
           ) : (
             <div className="classes-grid">
-              {classes.map((cls) => (
+              {filteredClasses.map((cls) => (
                 <div key={cls._id} className="card class-card">
                   <div className="class-card-header">
                     <h3>{cls.name}</h3>
@@ -254,35 +357,126 @@ export default function TeacherStudents() {
           )}
         </div>
       ) : (
-        /* Students Roster View */
-        <div className="card">
+        /* ── Students Roster View (Responsive Table + Mobile Cards) ── */
+        <div className="card students-roster-card">
           <div className="card-header-row" style={{ marginBottom: 16 }}>
             <h2>{t('studentListTitle')}</h2>
-            <span className="badge badge-accent">{students.length} {t('totalLabel')}</span>
+            <span className="badge badge-accent">{filteredStudents.length} {t('totalLabel')}</span>
           </div>
 
-          {students.length === 0 ? (
+          {filteredStudents.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
-              <p>{t('noStudentsYet')}</p>
+              <p>{searchQuery ? 'No students match your search' : t('noStudentsYet')}</p>
+              {searchQuery && (
+                <button className="btn btn-secondary btn-sm" onClick={() => setSearchQuery('')}>
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
-            <div className="table-responsive">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>{t('studentFullName')}</th>
-                    <th>{t('username')}</th>
-                    <th>{t('currentClass')}</th>
-                    <th>{t('assignClass')}</th>
-                    <th style={{ textAlign: 'right' }}>{t('actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((std) => (
-                    <tr key={std._id}>
-                      <td style={{ fontWeight: 600 }}>{std.name}</td>
-                      <td style={{ color: 'var(--text-secondary)' }}>@{std.username}</td>
-                      <td>
+            <>
+              {/* Desktop Table View (>= 769px) */}
+              <div className="students-desktop-table table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>{t('studentFullName')}</th>
+                      <th>{t('username')}</th>
+                      <th>{t('currentClass')}</th>
+                      <th>{t('assignClass')}</th>
+                      <th style={{ textAlign: 'right' }}>{t('actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredStudents.map((std) => (
+                      <tr key={std._id}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div className="student-avatar-circle">
+                              {getInitials(std.name)}
+                            </div>
+                            <span style={{ fontWeight: 600 }}>{std.name}</span>
+                          </div>
+                        </td>
+                        <td style={{ color: 'var(--text-secondary)' }}>@{std.username}</td>
+                        <td>
+                          {std.class ? (
+                            <span className="badge badge-accent">
+                              {std.class.name} ({std.class.code})
+                            </span>
+                          ) : (
+                            <span className="badge badge-off">
+                              {t('noClassAssigned')}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <select
+                            className="table-select"
+                            value={std.class?._id || ''}
+                            onChange={(e) => handleAssignClass(std._id, e.target.value)}
+                          >
+                            <option value="">{t('noClassAssigned')}</option>
+                            {classes.map((c) => (
+                              <option key={c._id} value={c._id}>
+                                {c.name} ({c.code})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <button
+                            className="btn-icon-delete"
+                            onClick={() => handleRemoveStudent(std._id, std.name)}
+                            title="Remove Student"
+                            aria-label="Remove Student"
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              <line x1="10" y1="11" x2="10" y2="17" />
+                              <line x1="14" y1="11" x2="14" y2="17" />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards View (<= 768px) Inspired by Schedule/Patient Cards */}
+              <div className="students-mobile-cards-list">
+                {filteredStudents.map((std) => (
+                  <div key={std._id} className="student-mobile-card">
+                    <div className="student-mobile-card-top">
+                      <div className="student-mobile-card-info">
+                        <div className="student-avatar-circle">
+                          {getInitials(std.name)}
+                        </div>
+                        <div>
+                          <div className="student-mobile-name">{std.name}</div>
+                          <div className="student-mobile-username">@{std.username}</div>
+                        </div>
+                      </div>
+                      <button
+                        className="btn-icon-delete"
+                        onClick={() => handleRemoveStudent(std._id, std.name)}
+                        title="Remove Student"
+                        aria-label="Remove Student"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="student-mobile-card-controls">
+                      <div className="student-mobile-class-row">
+                        <span className="student-mobile-class-label">{t('currentClass')}:</span>
                         {std.class ? (
                           <span className="badge badge-accent">
                             {std.class.name} ({std.class.code})
@@ -292,10 +486,12 @@ export default function TeacherStudents() {
                             {t('noClassAssigned')}
                           </span>
                         )}
-                      </td>
-                      <td>
+                      </div>
+
+                      <div className="student-mobile-assign-row">
+                        <label className="student-mobile-assign-label">{t('assignClass')}:</label>
                         <select
-                          className="table-select"
+                          className="table-select student-mobile-select"
                           value={std.class?._id || ''}
                           onChange={(e) => handleAssignClass(std._id, e.target.value)}
                         >
@@ -306,61 +502,49 @@ export default function TeacherStudents() {
                             </option>
                           ))}
                         </select>
-                      </td>
-                      <td>
-                        <button
-                          className="btn-icon-delete"
-                          onClick={() => handleRemoveStudent(std._id, std.name)}
-                          title="Remove Student"
-                          aria-label="Remove Student"
-                        >
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                            <line x1="10" y1="11" x2="10" y2="17" />
-                            <line x1="14" y1="11" x2="14" y2="17" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
 
-      {/* Create Class Modal */}
+      {/* ── Create Class Modal ── */}
       {showCreateModal && (
         <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('createClassBtn')}</h2>
               <button
-                className="modal-close-btn"
+                className="modal-close"
                 onClick={() => setShowCreateModal(false)}
+                aria-label="Close"
               >
-                ✕
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
-            {createError && (
-              <div className="inline-alert inline-alert-error" style={{ marginBottom: 16 }}>
-                {createError}
-              </div>
-            )}
+            <form onSubmit={handleCreateClass} className="modal-body">
+              {createError && (
+                <div className="error-message" style={{ marginBottom: 16 }}>
+                  {createError}
+                </div>
+              )}
 
-            <form onSubmit={handleCreateClass}>
               <div className="form-group-inline">
-                <label>{t('classNameLabel')}</label>
+                <label>{t('classNameLabel')} *</label>
                 <input
                   type="text"
                   placeholder={t('classNamePlaceholder')}
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                   required
-                  autoFocus
                 />
               </div>
 
@@ -368,24 +552,28 @@ export default function TeacherStudents() {
                 <label>{t('classCodeLabel')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. 10A-MATH"
+                  placeholder={t('classCodePlaceholder')}
                   value={newClassCode}
                   onChange={(e) => setNewClassCode(e.target.value)}
+                  maxLength={12}
                   style={{ textTransform: 'uppercase' }}
                 />
+                <span className="form-help-text" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  {t('classCodeAutoHelp')}
+                </span>
               </div>
 
               <div className="form-group-inline">
                 <label>{t('classDescLabel')}</label>
-                <input
-                  type="text"
-                  placeholder="Optional notes or semester details"
+                <textarea
+                  rows={2}
+                  placeholder={t('classDescPlaceholder')}
                   value={newClassDesc}
                   onChange={(e) => setNewClassDesc(e.target.value)}
                 />
               </div>
 
-              <div className="modal-actions">
+              <div className="modal-footer" style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -398,7 +586,7 @@ export default function TeacherStudents() {
                   className="btn btn-primary"
                   disabled={creatingClass}
                 >
-                  {creatingClass ? '...' : t('saveClassBtn')}
+                  {creatingClass ? t('btnProcessing') : t('createClassBtn')}
                 </button>
               </div>
             </form>

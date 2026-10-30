@@ -27,7 +27,11 @@ export const submitQuiz = async (req, res, next) => {
   try {
     const validationResult = submitQuizSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return res.status(400).json({ success: false, message: 'Invalid input data', errors: validationResult.error.errors });
+      return res.status(400).json({
+        success: false,
+        message: (validationResult.error.issues?.[0] || validationResult.error.errors?.[0])?.message || 'Invalid input data',
+        errors: validationResult.error.issues || validationResult.error.errors || [],
+      });
     }
     
     const { shareCode, studentName, answers } = validationResult.data;
@@ -35,6 +39,13 @@ export const submitQuiz = async (req, res, next) => {
     const quiz = await Quiz.findOne({ shareCode });
     if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
+    }
+    const student = req.student;
+    if (student) {
+      const studentTeacherId = student.teacher?._id || student.teacher;
+      if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+        return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+      }
     }
     // Access control check via priority hierarchy
     const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
@@ -47,7 +58,6 @@ export const submitQuiz = async (req, res, next) => {
       });
     }
 
-    const student = req.student;
     const trimmedName = student ? student.name : studentName.trim();
 
     // Prevent automated rapid-fire resubmissions (10-second debounce per student name)

@@ -19,6 +19,36 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+const getAllowedOrigins = () => {
+  const configuredOrigins = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : isProduction ? [] : ['http://localhost:5173'];
+
+  return configuredOrigins.map((origin) => {
+    let parsedOrigin;
+    try {
+      parsedOrigin = new URL(origin);
+    } catch {
+      throw new Error('CLIENT_URL must contain comma-separated valid origins');
+    }
+
+    if (parsedOrigin.origin !== origin.replace(/\/$/, '') || (isProduction && parsedOrigin.protocol !== 'https:')) {
+      throw new Error('CLIENT_URL must contain exact origins; production origins must use HTTPS');
+    }
+    return parsedOrigin.origin;
+  });
+};
+
+const allowedOrigins = getAllowedOrigins();
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret || jwtSecret.length < 32 || /^change_this|^replace_with/i.test(jwtSecret)) {
+  throw new Error('JWT_SECRET must be a private random value with at least 32 characters');
+}
+if (isProduction && allowedOrigins.length === 0) {
+  throw new Error('CLIENT_URL must list the exact HTTPS frontend origin(s) in production');
+}
 
 // Trust reverse proxy (Render, Heroku, etc.) for rate limiting and IP detection
 app.set('trust proxy', 1);
@@ -26,49 +56,43 @@ app.set('trust proxy', 1);
 // Middleware
 // Security HTTP headers
 app.use(helmet());
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 // Cookie parser
 app.use(cookieParser());
 
-// Prevent NoSQL injection
-app.use(mongoSanitize());
-
-// Dynamic & flexible CORS config to support Netlify, Render, and Localhost
-const getOrigins = () => {
-  if (!process.env.CLIENT_URL) return ['http://localhost:5173'];
-  return process.env.CLIENT_URL.split(',').map((url) => url.trim().replace(/\/$/, ''));
-};
-
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (e.g. server-to-server, curl, Postman, health checks)
     if (!origin) return callback(null, true);
-
-    const cleanOrigin = origin.replace(/\/$/, '');
-    const allowed = getOrigins();
-
-    // Allow configured origins, all .netlify.app deployments, or localhost
-    if (
-      allowed.includes('*') ||
-      allowed.includes(cleanOrigin) ||
-      cleanOrigin.endsWith('.netlify.app') ||
-      cleanOrigin.includes('localhost') ||
-      cleanOrigin.includes('127.0.0.1')
-    ) {
-      return callback(null, cleanOrigin);
-    }
-
-    // Reject unallowed origins gracefully without throwing an unhandled 500 error
-    return callback(null, false);
+    return callback(null, allowedOrigins.includes(origin));
   },
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
+// Refuse insecure API traffic in production. The hosting proxy must preserve X-Forwarded-Proto.
+app.use((req, res, next) => {
+  if (isProduction && !req.secure) {
+    return res.status(426).json({ success: false, message: 'HTTPS is required' });
+  }
+  next();
+});
+
+// CORS alone does not block state-changing requests; validate browser origins as a CSRF defense.
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  const changesState = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);
+  if (changesState && origin && !allowedOrigins.includes(origin)) {
+    return res.status(403).json({ success: false, message: 'Request origin is not allowed' });
+  }
+  next();
+});
+
 app.use(morgan('dev'));
-// Limit payload size to 1MB to mitigate DOS
-app.use(express.json({ limit: '1mb' }));
 
 // Rate Limiting
 const apiLimiter = rateLimit({
@@ -78,26 +102,41 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' }
 });
-app.use('/api/', apiLimiter);
+// Cover both the canonical /api paths and the legacy route aliases below.
+app.use(apiLimiter);
 
-// Strict rate limiting on authentication to prevent brute force
-const authLimiter = rateLimit({
+// Throttle failed login attempts by client IP. Use a shared store when running multiple API instances.
+const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Max 20 attempts per 15 minutes per IP
+  limit: 10,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, message: 'Too many authentication attempts. Please try again after 15 minutes' }
+  message: { success: false, message: 'Too many login attempts. Please try again after 15 minutes' }
+});
+const registrationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many registration attempts. Please try again later' }
 });
 app.use([
   '/api/auth/login',
-  '/api/auth/register',
   '/auth/login',
-  '/auth/register',
   '/api/students/login',
-  '/api/students/register',
   '/students/login',
+], loginLimiter);
+app.use([
+  '/api/auth/register',
+  '/auth/register',
+  '/api/students/register',
   '/students/register',
-], authLimiter);
+], registrationLimiter);
+
+// Apply request limits before parsing bodies, then sanitize parsed JSON/query input.
+app.use(express.json({ limit: '1mb' }));
+app.use(mongoSanitize());
 
 // API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
 app.use('/api/auth', authRoutes);

@@ -39,7 +39,7 @@ export default function Login() {
           password,
         });
 
-        studentLogin(res.token, res.student);
+        studentLogin(res.student);
         navigate('/student/portal');
       } else {
         const res = await api.post('/auth/login', {
@@ -47,7 +47,7 @@ export default function Login() {
           password,
         });
 
-        login(res.token, res.teacher);
+        login(res.teacher);
         navigate('/dashboard');
       }
     } catch (err) {

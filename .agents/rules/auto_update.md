@@ -13,6 +13,8 @@ IF (a new file or directory was CREATED or DELETED or RENAMED) {
     UPDATE: .agents/rules/codebase_architecture.md
       - Add/remove the file from the Workspace Layout tree
       - Add/remove from the Directory Responsibilities table if it's a key file
+    UPDATE: STRUCTURE.md
+      - Add/remove from the Zero-Credit Fast Dispatch Matrix if it's a primary file
     UPDATE: AGENTS.md § Codebase Navigation Map
       - Add/remove file links if the file is a primary target for any subsystem
 }

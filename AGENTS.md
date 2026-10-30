@@ -1,5 +1,7 @@
 # Agent Guidelines & Operational Rules
 
+> **FAST START:** For immediate zero-credit routing and instant file targets, read [STRUCTURE.md](file:///d:/TESTGENERATOR/STRUCTURE.md) first. Never perform broad searches or load all rules simultaneously.
+
 ## 1. Environment & Secret Protection
 - **Strict Prohibition on Secret Files:** NEVER read, view, search, edit, or touch `.env`, `.env.local`, `.env.production`, or any file containing private credentials, API keys, or production secrets.
 - **Use Template Files Exclusively:** ONLY inspect, reference, or modify `.env.example` or documentation template files.
@@ -56,35 +58,54 @@ ELSE {
 
 ---
 
-## 3. Token & Credit Optimization Rules (Cost Efficiency)
-- **Targeted Line Views:** NEVER view entire large files. ALWAYS use `StartLine` and `EndLine` parameters in `view_file` to inspect only the relevant slice (<= 60-80 lines at a time).
-- **Surgical Edits:** Use `replace_file_content` with minimal target chunks. Never rewrite whole files to adjust a few lines.
-- **Zero Speculative Searching:** Do not perform broad directory grep/find searches across `node_modules`, `build`, or unrelated folders. Navigate directly to known paths.
+## 4. Token & Credit Optimization Rules (Cost Efficiency)
+- **Targeted Line Views:** NEVER view entire large files. ALWAYS use line-range parameters (`StartLine` and `EndLine` in `read_file` or `view_file`) to inspect only the relevant slice (<= 60-80 lines at a time).
+- **Surgical Edits:** Use `edit_file` or `replace_file_content` with minimal target chunks. Never rewrite whole files to adjust a few lines.
+- **Zero Speculative Searching:** Do not perform broad directory grep/find searches across `node_modules`, `build`, or unrelated folders. Navigate directly to known paths via [STRUCTURE.md](file:///d:/TESTGENERATOR/STRUCTURE.md).
 - **Concise Outputs:** Avoid conversational filler, disclaimers, or echoing entire unchanged files in responses. State what was done, link files, and stop.
 - **No Redundant Steps:** Once a bug or feature is resolved, complete the task immediately rather than executing unnecessary verification loops.
 
 ---
 
-## 4. Codebase Navigation Map
+## 5. Codebase Navigation Map
 
+- **Instant Structure & Dispatch:** [STRUCTURE.md](file:///d:/TESTGENERATOR/STRUCTURE.md) — read first for any task
 - **Styles & Themes:** [index.css](file:///d:/TESTGENERATOR/client/src/index.css), [StyleContext.jsx](file:///d:/TESTGENERATOR/client/src/context/StyleContext.jsx) — consult [styles.md](file:///d:/TESTGENERATOR/.agents/rules/styles.md) first
 - **Languages & Translations:** [translations.js](file:///d:/TESTGENERATOR/client/src/translations.js), [LanguageContext.jsx](file:///d:/TESTGENERATOR/client/src/context/LanguageContext.jsx)
-- **Auth & Sessions:** [AuthContext.jsx](file:///d:/TESTGENERATOR/client/src/context/AuthContext.jsx), [authMiddleware](file:///d:/TESTGENERATOR/server/middleware)
+- **Auth & Sessions:** [AuthContext.jsx](file:///d:/TESTGENERATOR/client/src/context/AuthContext.jsx), [authMiddleware.js](file:///d:/TESTGENERATOR/server/middleware/authMiddleware.js)
 - **Frontend Pages & Routes:** [App.jsx](file:///d:/TESTGENERATOR/client/src/App.jsx), [pages/](file:///d:/TESTGENERATOR/client/src/pages/)
 - **Backend API & Logic:** [server.js](file:///d:/TESTGENERATOR/server/server.js), [routes/](file:///d:/TESTGENERATOR/server/routes/), [controllers/](file:///d:/TESTGENERATOR/server/controllers/), [models/](file:///d:/TESTGENERATOR/server/models/)
 - **Detailed Rules Directory:** [.agents/rules/](file:///d:/TESTGENERATOR/.agents/rules/)
 
 ---
 
-## 5. Self-Maintenance Protocol
+## 6. Targeted Rule Loading (Zero-Credit Rule Execution)
+
+Do NOT read all rule files at once. Load ONLY the specific rule matching your active domain:
+
+| Domain | Consult This Rule Only |
+|:---|:---|
+| Styling, layout, theme tokens, animations | [.agents/rules/styles.md](file:///d:/TESTGENERATOR/.agents/rules/styles.md) |
+| Ambiguous scope triage & boundaries | [.agents/rules/triage_decision_tree.md](file:///d:/TESTGENERATOR/.agents/rules/triage_decision_tree.md) |
+| Architecture sync after adding/removing files | [.agents/rules/auto_update.md](file:///d:/TESTGENERATOR/.agents/rules/auto_update.md) |
+| User feedback, past corrections, preferences | [.agents/rules/learned_preferences.md](file:///d:/TESTGENERATOR/.agents/rules/learned_preferences.md) |
+| Secret protection & credential guidelines | [.agents/rules/security.md](file:///d:/TESTGENERATOR/.agents/rules/security.md) |
+| Token / credit minimization details | [.agents/rules/credit_optimization.md](file:///d:/TESTGENERATOR/.agents/rules/credit_optimization.md) |
+| Complete workspace directory reference | [.agents/rules/codebase_architecture.md](file:///d:/TESTGENERATOR/.agents/rules/codebase_architecture.md) |
+
+---
+
+## 7. Self-Maintenance Protocol
 
 After ANY task that creates, deletes, or renames files:
-1. Update [codebase_architecture.md](file:///d:/TESTGENERATOR/.agents/rules/codebase_architecture.md) file tree & tables.
+1. Update [codebase_architecture.md](file:///d:/TESTGENERATOR/.agents/rules/codebase_architecture.md) and [STRUCTURE.md](file:///d:/TESTGENERATOR/STRUCTURE.md).
 2. Update this file's Navigation Map if a primary target file was added/removed.
 3. Update [styles.md](file:///d:/TESTGENERATOR/.agents/rules/styles.md) if new CSS tokens were added.
 4. See full protocol: [auto_update.md](file:///d:/TESTGENERATOR/.agents/rules/auto_update.md)
 
-## 6. Learning & Adaptation
+---
+
+## 8. Learning & Adaptation
 
 After user corrections or expressed preferences, update [learned_preferences.md](file:///d:/TESTGENERATOR/.agents/rules/learned_preferences.md) with:
 - What was corrected and why.

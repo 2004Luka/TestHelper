@@ -1,13 +1,11 @@
 const rawBase = import.meta.env.VITE_API_URL || '/api';
 const BASE = rawBase.replace(/\/$/, '');
 
-function getHeaders(extraHeaders = {}) {
-  const headers = { ...extraHeaders };
-  const token = localStorage.getItem('teacherToken') || localStorage.getItem('studentToken');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+if (import.meta.env.PROD && typeof window !== 'undefined') {
+  const apiUrl = new URL(BASE, window.location.origin);
+  if (window.location.protocol === 'https:' && apiUrl.protocol !== 'https:') {
+    throw new Error('VITE_API_URL must use HTTPS when the app is deployed over HTTPS.');
   }
-  return headers;
 }
 
 async function handleResponse(res) {
@@ -37,7 +35,7 @@ async function handleResponse(res) {
 const api = {
   async get(path) {
     const res = await fetch(`${BASE}${path}`, {
-      headers: getHeaders(),
+      headers: {},
       credentials: 'include',
     });
     return handleResponse(res);
@@ -46,7 +44,7 @@ const api = {
   async post(path, body) {
     const res = await fetch(`${BASE}${path}`, {
       method: 'POST',
-      headers: getHeaders({ 'Content-Type': 'application/json' }),
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(body),
     });
@@ -56,7 +54,7 @@ const api = {
   async postForm(path, formData) {
     const res = await fetch(`${BASE}${path}`, {
       method: 'POST',
-      headers: getHeaders(),
+      headers: {},
       credentials: 'include',
       body: formData,
     });
@@ -66,7 +64,7 @@ const api = {
   async patch(path, body) {
     const res = await fetch(`${BASE}${path}`, {
       method: 'PATCH',
-      headers: getHeaders(body ? { 'Content-Type': 'application/json' } : {}),
+      headers: body ? { 'Content-Type': 'application/json' } : {},
       credentials: 'include',
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -76,7 +74,7 @@ const api = {
   async del(path) {
     const res = await fetch(`${BASE}${path}`, {
       method: 'DELETE',
-      headers: getHeaders(),
+      headers: {},
       credentials: 'include',
     });
     return handleResponse(res);
