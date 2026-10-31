@@ -1,6 +1,6 @@
 /* ═════════════════════════════════════════════════════════════════
    QUIZZUP BRAND & DESIGN SYSTEM
-   Theme: QUIZZUP Electric Golden Yellow & Midnight Navy
+   Theme: QUIZZUP Charcoal & Luxury Gold
    ═════════════════════════════════════════════════════════════════ */
 
 *,
@@ -13,43 +13,43 @@
 
 :root {
   /* Quizzup Brand Colors */
-  --accent: #FFC700;
-  --accent-hover: #FFD633;
-  --accent-dark: #D9A800;
-  --accent-glow: rgba(255, 199, 0, 0.22);
-  --accent-subtle: rgba(255, 199, 0, 0.1);
-  --accent-contrast: #0F101A;
+  --accent: #D4AF37;
+  --accent-hover: #E2C15A;
+  --accent-dark: #A88920;
+  --accent-glow: rgba(212, 175, 55, 0.2);
+  --accent-subtle: rgba(212, 175, 55, 0.08);
+  --accent-contrast: #111113;
 
   /* Background Palette */
-  --bg-primary: #0F101A;
-  --bg-secondary: #171826;
-  --bg-card: rgba(23, 24, 38, 0.92);
-  --bg-card-hover: rgba(30, 32, 50, 0.95);
+  --bg-primary: #101012;
+  --bg-secondary: #1A1A1D;
+  --bg-card: rgba(31, 31, 34, 0.94);
+  --bg-card-hover: rgba(42, 42, 46, 0.96);
   --bg-glass: rgba(255, 255, 255, 0.04);
   --bg-glass-hover: rgba(255, 255, 255, 0.07);
 
-  /* Status Colors: Yellow (Turned ON) & Gray/White (Turned OFF) */
-  --status-on: #FFC700;
-  --status-on-bg: rgba(255, 199, 0, 0.14);
-  --status-on-border: rgba(255, 199, 0, 0.4);
+  /* Status Colors: Gold (Turned ON) & Gray/White (Turned OFF) */
+  --status-on: #D4AF37;
+  --status-on-bg: rgba(212, 175, 55, 0.14);
+  --status-on-border: rgba(212, 175, 55, 0.4);
 
-  --status-off: #99A0B8;
+  --status-off: #A8A8AE;
   --status-off-bg: rgba(255, 255, 255, 0.05);
   --status-off-border: rgba(255, 255, 255, 0.12);
 
   /* Borders & Shadows */
-  --border-color: rgba(255, 255, 255, 0.09);
-  --border-active: rgba(255, 199, 0, 0.45);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-active: rgba(212, 175, 55, 0.45);
 
   /* Text Colors */
-  --text-primary: #F3F4F8;
-  --text-secondary: #99A0B8;
-  --text-muted: #626880;
+  --text-primary: #F8FAFC;
+  --text-secondary: #C3C3C8;
+  --text-muted: #92929A;
 
   /* Semantic Colors */
   --success: #34D399;
   --error: #F87171;
-  --warning: #FBBF24;
+  --warning: #D4AF37;
 
   /* Geometry */
   --radius-sm: 8px;
@@ -62,7 +62,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 8px 30px rgba(255, 199, 0, 0.2);
+  --shadow-glow: 0 8px 30px rgba(212, 175, 55, 0.18);
 
   /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -74,29 +74,30 @@
 }
 
 [data-theme="light"] {
-  --accent: #D99B00;
-  --accent-hover: #B88200;
-  --accent-dark: #8F6600;
-  --accent-glow: rgba(217, 155, 0, 0.25);
-  --accent-subtle: rgba(217, 155, 0, 0.12);
-  --accent-contrast: #FFFFFF;
-  --bg-primary: #F8F9FD;
-  --bg-secondary: #ECEFF6;
-  --bg-card: rgba(255, 255, 255, 0.94);
-  --bg-card-hover: rgba(245, 247, 252, 0.98);
-  --bg-glass: rgba(0, 0, 0, 0.03);
-  --bg-glass-hover: rgba(0, 0, 0, 0.05);
-  --status-on: #D99B00;
-  --status-on-bg: rgba(217, 155, 0, 0.14);
-  --status-on-border: rgba(217, 155, 0, 0.4);
-  --status-off: #64748B;
-  --status-off-bg: rgba(0, 0, 0, 0.05);
-  --status-off-border: rgba(0, 0, 0, 0.12);
-  --border-color: rgba(0, 0, 0, 0.1);
-  --border-active: rgba(217, 155, 0, 0.5);
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --accent: #A8831E;
+  --accent-hover: #8F6E18;
+  --accent-dark: #705514;
+  --accent-glow: rgba(168, 131, 30, 0.2);
+  --accent-subtle: rgba(168, 131, 30, 0.1);
+  --accent-contrast: #171719;
+  --bg-primary: #F4F4F2;
+  --bg-secondary: #E7E7E4;
+  --bg-card: rgba(255, 255, 255, 0.96);
+  --bg-card-hover: rgba(232, 232, 228, 0.98);
+  --bg-glass: rgba(20, 20, 22, 0.03);
+  --bg-glass-hover: rgba(20, 20, 22, 0.05);
+  --status-on: #A8831E;
+  --status-on-bg: rgba(168, 131, 30, 0.14);
+  --status-on-border: rgba(168, 131, 30, 0.4);
+  --status-off: #77777D;
+  --status-off-bg: rgba(20, 20, 22, 0.05);
+  --status-off-border: rgba(20, 20, 22, 0.12);
+  --border-color: rgba(20, 20, 22, 0.12);
+  --border-active: rgba(168, 131, 30, 0.5);
+  --text-primary: #1A1A1D;
+  --text-secondary: #4A4A4E;
+  --text-muted: #77777D;
+  --warning: #A8831E;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.12);
@@ -108,127 +109,12 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: radial-gradient(ellipse at 50% 0%, #151a2d 0%, var(--bg-primary) 70%);
+  background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-
-[data-theme="light"] body {
-  background: radial-gradient(ellipse at 50% 0%, #E8F4FD 0%, var(--bg-primary) 75%);
-}
-
-/* ── Deep Ocean Background: Volumetric Sunlight Beams (Seamless & Mobile Optimized) ── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: -15vmax;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    /* Smooth top-to-bottom depth falloff — dissolves rays naturally into abyss without mask repeat artifacts */
-    linear-gradient(180deg, transparent 0%, transparent 35%, var(--bg-primary) 80%),
-    /* Surface sunburst / surface refraction */
-    radial-gradient(ellipse at 42% 12%, rgba(255, 215, 110, 0.28) 0%, rgba(255, 199, 0, 0.12) 24%, transparent 58%),
-    /* Volumetric sunlight rays (god rays) streaming down into the ocean */
-    repeating-linear-gradient(114deg,
-      transparent 0%,
-      transparent 3%,
-      rgba(255, 225, 130, 0.09) 5%,
-      rgba(255, 225, 130, 0.16) 7%,
-      transparent 9.5%,
-      transparent 13.5%,
-      rgba(255, 215, 100, 0.08) 15.5%,
-      transparent 18.5%,
-      transparent 23%,
-      rgba(160, 225, 255, 0.06) 25.5%,
-      rgba(255, 220, 110, 0.12) 28%,
-      transparent 31%),
-    /* Deep aquatic ambient glow */
-    radial-gradient(ellipse at 78% 70%, rgba(14, 116, 144, 0.08) 0%, transparent 60%);
-  transform-origin: 42% 12%;
-  animation: sunlight-drift 16s ease-in-out infinite alternate;
-  will-change: transform, opacity;
-}
-
-[data-theme="light"] body::before {
-  background:
-    linear-gradient(180deg, transparent 0%, transparent 35%, var(--bg-primary) 82%),
-    radial-gradient(ellipse at 42% 12%, rgba(217, 155, 0, 0.22) 0%, rgba(14, 165, 233, 0.14) 25%, transparent 60%),
-    repeating-linear-gradient(114deg,
-      transparent 0%,
-      transparent 3.5%,
-      rgba(217, 155, 0, 0.08) 6%,
-      rgba(14, 165, 233, 0.07) 8%,
-      transparent 11%,
-      transparent 16%,
-      rgba(217, 155, 0, 0.07) 18.5%,
-      transparent 22%);
-}
-
-/* Floating oceanic motes & water particles drifting towards the light */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.45;
-  background-image:
-    /* Fine illuminated water motes catching sunlight */
-    radial-gradient(circle, rgba(255, 225, 130, 0.45) 1px, transparent 1.6px),
-    /* Soft glowing bubbles/micro-particles */
-    radial-gradient(circle, rgba(255, 255, 255, 0.55) 1.2px, transparent 2px),
-    /* Deeper aquatic particles */
-    radial-gradient(circle, rgba(56, 189, 248, 0.35) 1.5px, transparent 2.2px);
-  background-size: 100px 150px, 170px 230px, 250px 320px;
-  animation: ocean-motes 28s linear infinite;
-  will-change: background-position;
-}
-
-[data-theme="light"] body::after {
-  opacity: 0.35;
-  background-image:
-    radial-gradient(circle, rgba(217, 155, 0, 0.4) 1px, transparent 1.5px),
-    radial-gradient(circle, rgba(14, 165, 233, 0.35) 1.2px, transparent 2px);
-}
-
-@keyframes sunlight-drift {
-  0% {
-    transform: rotate(0deg) scaleX(1);
-    opacity: 0.8;
-  }
-
-  50% {
-    transform: rotate(2.5deg) scaleX(1.04);
-    opacity: 1;
-  }
-
-  100% {
-    transform: rotate(-1.5deg) scaleX(0.98);
-    opacity: 0.85;
-  }
-}
-
-@keyframes ocean-motes {
-  0% {
-    background-position: 0 0, 0 0, 0 0;
-  }
-
-  100% {
-    background-position: 30px -150px, -40px -230px, 20px -320px;
-  }
-}
-
-/* Disable animations for low-power / accessibility */
-@media (prefers-reduced-motion: reduce) {
-
-  body::before,
-  body::after {
-    animation: none;
-  }
 }
 
 #root {
@@ -377,10 +263,10 @@ h6 {
   width: 72px;
   height: 100vh;
   height: 100dvh;
-  background: rgba(15, 16, 26, 0.96);
+  background: var(--bg-primary);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 199, 0, 0.12);
+  border-right: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -392,8 +278,8 @@ h6 {
 }
 
 [data-theme="light"] .sidenav {
-  background: rgba(255, 255, 255, 0.97);
-  border-right-color: rgba(217, 155, 0, 0.2);
+  background: var(--bg-card);
+  border-right-color: color-mix(in srgb, var(--accent) 20%, transparent);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06);
 }
 
@@ -416,7 +302,7 @@ h6 {
 
 .sidenav-brand:hover {
   transform: scale(1.06);
-  filter: drop-shadow(0 0 10px rgba(255, 199, 0, 0.5));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 50%, transparent));
 }
 
 .sidenav-nav {
@@ -466,8 +352,8 @@ h6 {
 .sidenav-item:hover {
   color: var(--accent);
   background: var(--bg-card-hover);
-  border-color: rgba(255, 199, 0, 0.25);
-  box-shadow: 0 0 14px rgba(255, 199, 0, 0.15);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .sidenav-item:hover .sidenav-icon {
@@ -476,14 +362,14 @@ h6 {
 
 .sidenav-item.active {
   color: var(--accent);
-  background: rgba(255, 199, 0, 0.12);
-  border: 1px solid rgba(255, 199, 0, 0.45);
-  box-shadow: 0 0 16px rgba(255, 199, 0, 0.22);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 [data-theme="light"] .sidenav-item.active {
-  background: rgba(217, 155, 0, 0.12);
-  border-color: rgba(217, 155, 0, 0.5);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 /* Hover Tooltip - Full Name on Hover */
@@ -492,8 +378,8 @@ h6 {
   left: calc(100% + 14px);
   top: 50%;
   transform: translateY(-50%) translateX(-6px);
-  background: #141522;
-  color: #FFFFFF;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   padding: 6px 12px;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -504,16 +390,16 @@ h6 {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  border: 1px solid rgba(255, 199, 0, 0.28);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
   z-index: 1000;
   transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
 }
 
 [data-theme="light"] .sidenav-label {
-  background: #FFFFFF;
-  color: #12131C;
-  border-color: rgba(217, 155, 0, 0.35);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
@@ -524,11 +410,11 @@ h6 {
   top: 50%;
   transform: translateY(-50%);
   border: 5px solid transparent;
-  border-right-color: #141522;
+  border-right-color: var(--bg-secondary);
 }
 
 [data-theme="light"] .sidenav-label::before {
-  border-right-color: #FFFFFF;
+  border-right-color: var(--bg-card);
 }
 
 .sidenav-item:hover .sidenav-label {
@@ -556,10 +442,10 @@ h6 {
     height: 60px;
     padding: 0 8px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(15, 16, 26, 0.95);
+    background: var(--bg-primary);
     backdrop-filter: blur(24px) saturate(1.6);
     -webkit-backdrop-filter: blur(24px) saturate(1.6);
-    border-top: 1px solid rgba(255, 199, 0, 0.15);
+    border-top: 1px solid color-mix(in srgb, var(--accent) 15%, transparent);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
     z-index: 950;
     align-items: center;
@@ -567,8 +453,8 @@ h6 {
   }
 
   [data-theme="light"] .bottomnav {
-    background: rgba(255, 255, 255, 0.96);
-    border-top-color: rgba(217, 155, 0, 0.2);
+    background: var(--bg-card);
+    border-top-color: color-mix(in srgb, var(--accent) 20%, transparent);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
   }
 
@@ -590,7 +476,7 @@ h6 {
   .bottomnav-item:active,
   .bottomnav-item.active {
     color: var(--accent);
-    background: rgba(255, 199, 0, 0.12);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
   }
 
   .bottomnav-icon {
@@ -613,7 +499,7 @@ h6 {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(15, 16, 26, 0.9);
+  background: var(--bg-primary);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-color);
   padding: 12px 24px;
@@ -651,28 +537,54 @@ h6 {
 }
 
 /* ── Hero (Home Page) ── */
+.app-container:has(.home-page) {
+  max-width: none;
+  padding: 0;
+}
+
+.page.home-page {
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 0;
+}
+
 .hero {
   text-align: center;
-  padding: 80px 0 50px;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(56px, 10vh, 100px) clamp(16px, 4vw, 48px);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   position: relative;
+  isolation: isolate;
+  z-index: 1;
+  overflow: hidden;
+  background: var(--bg-primary);
 }
 
-/* Hero ambient glow */
+/* Blurred landing image and warm dark overlay */
 .hero::before {
   content: '';
   position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 400px;
-  background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+  inset: -10px;
+  background: url('/quizzup-landing-bg.avif') center / cover no-repeat;
+  filter: blur(7px) brightness(0.42) saturate(0.72);
+  transform: scale(1.035);
+  pointer-events: none;
+  z-index: -2;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--bg-primary) 35%, transparent), transparent 55%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-primary) 44%, transparent), color-mix(in srgb, var(--bg-primary) 84%, transparent));
   pointer-events: none;
   z-index: -1;
-  animation: hero-glow 6s ease-in-out infinite alternate;
 }
 
 @keyframes hero-glow {
@@ -688,13 +600,13 @@ h6 {
 }
 
 .hero-badge {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 8px;
   padding: 6px 16px;
   border-radius: var(--radius-pill);
   background: var(--accent-subtle);
-  border: 1px solid rgba(255, 199, 0, 0.3);
+  border: 1px solid var(--border-active);
   color: var(--accent);
   font-size: 0.85rem;
   font-weight: 700;
@@ -730,12 +642,16 @@ h6 {
 }
 
 .hero-title {
-  font-size: 3rem;
+  width: 100%;
+  max-width: 980px;
+  padding-inline: clamp(12px, 3vw, 28px);
+  font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 800;
-  line-height: 1.12;
+  line-height: 1.18;
   margin-bottom: 18px;
-  max-width: 800px;
   color: var(--text-primary);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
   background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 50%, var(--text-primary) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -747,7 +663,8 @@ h6 {
 .hero-subtitle {
   font-size: 1.1rem;
   color: var(--text-secondary);
-  max-width: 620px;
+  max-width: 640px;
+  padding-inline: 12px;
   margin: 0 auto 36px;
   line-height: 1.7;
   animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
@@ -788,7 +705,7 @@ h6 {
 }
 
 .card:hover {
-  border-color: rgba(255, 199, 0, 0.3);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
   box-shadow: var(--shadow-md), 0 0 40px var(--accent-glow);
   transform: translateY(-2px);
 }
@@ -833,7 +750,7 @@ h6 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.12) 50%, transparent 60%);
+  background: linear-gradient(105deg, transparent 40%, color-mix(in srgb, var(--text-primary) 12%, transparent) 50%, transparent 60%);
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity var(--transition-fast);
@@ -937,7 +854,7 @@ h6 {
 .form-select:focus,
 .form-textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 199, 0, 0.12), 0 0 16px var(--accent-glow);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent), 0 0 16px var(--accent-glow);
   background: var(--bg-card);
 }
 
@@ -1006,7 +923,7 @@ h6 {
 .upload-zone.has-file {
   border-color: var(--accent);
   border-style: solid;
-  background: rgba(255, 199, 0, 0.06);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .upload-icon {
@@ -1059,7 +976,7 @@ h6 {
 }
 
 .question-card:hover {
-  border-color: rgba(255, 199, 0, 0.15);
+  border-color: color-mix(in srgb, var(--accent) 15%, transparent);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
@@ -1143,7 +1060,7 @@ h6 {
 .option-item.selected,
 .option-item.correct {
   border-color: var(--accent);
-  background: rgba(255, 199, 0, 0.14);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .option-item.incorrect {
@@ -1323,13 +1240,13 @@ tr:hover td {
 .badge-attempt {
   background: var(--accent-subtle);
   color: var(--accent);
-  border: 1px solid rgba(255, 199, 0, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .badge-accent {
   background: var(--accent-subtle);
   color: var(--accent);
-  border: 1px solid rgba(255, 199, 0, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .badge-off {
@@ -1425,8 +1342,8 @@ tr:hover td {
 }
 
 .comment-avatar.student {
-  background: rgba(99, 102, 241, 0.2);
-  color: #818CF8;
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .comment-body {
@@ -1458,13 +1375,13 @@ tr:hover td {
 }
 
 .comment-role.teacher {
-  background: rgba(255, 199, 0, 0.15);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
   color: var(--accent);
 }
 
 .comment-role.student {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818CF8;
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .comment-time {
@@ -1509,7 +1426,7 @@ tr:hover td {
   gap: 16px;
   padding: 16px 24px;
   margin: 24px -24px -80px;
-  background: rgba(15, 16, 26, 0.92);
+  background: var(--bg-primary);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-color);
@@ -1533,8 +1450,8 @@ tr:hover td {
 
 .timer.warning {
   color: var(--warning);
-  border-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.08);
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
 }
 
 .timer.danger {
@@ -1749,7 +1666,7 @@ tr:hover td {
 .form-group-inline select:focus,
 .form-group-inline textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 199, 0, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .form-group-inline select option {
@@ -1795,11 +1712,22 @@ tr:hover td {
   }
 
   .hero-title {
-    font-size: 2.2rem;
+    font-size: clamp(1.9rem, 6vw, 2.5rem);
+    padding-inline: 8px;
+  }
+
+  .hero {
+    padding: clamp(48px, 9vh, 76px) 18px;
+  }
+
+  .page.home-page,
+  .hero {
+    min-height: calc(100svh - 64px - env(safe-area-inset-bottom, 0px));
   }
 
   .hero::before {
-    display: none;
+    filter: blur(6px) brightness(0.4) saturate(0.72);
+    background-position: center;
   }
 
   .grid-2,
@@ -1886,7 +1814,9 @@ tr:hover td {
   }
 
   .hero-title {
-    font-size: 1.8rem;
+    font-size: clamp(1.65rem, 8vw, 2rem);
+    line-height: 1.22;
+    padding-inline: 0;
   }
 
   .hero-subtitle {
@@ -1895,7 +1825,8 @@ tr:hover td {
 
   .hero-actions {
     flex-direction: column;
-    width: 100%;
+    width: min(100%, 360px);
+    gap: 12px;
   }
 
   .hero-actions .btn {
@@ -2028,7 +1959,7 @@ tr:hover td {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 199, 0, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
   overflow: hidden;
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -2065,7 +1996,7 @@ tr:hover td {
 
 .modal-close-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 .modal-body {
@@ -2121,7 +2052,7 @@ tr:hover td {
 }
 
 .filter-pill.active {
-  background: rgba(255, 199, 0, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
   border-color: var(--accent);
 }
@@ -2290,7 +2221,7 @@ tr:hover td {
 .dashboard-tabs {
   display: flex;
   align-items: center;
-  background: rgba(23, 24, 38, 0.7);
+  background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
@@ -2359,7 +2290,7 @@ tr:hover td {
 }
 
 .dashboard-tab.active .tab-badge {
-  background: rgba(15, 16, 26, 0.25);
+  background: color-mix(in srgb, var(--bg-primary) 25%, transparent);
   color: var(--accent-contrast);
   border-color: transparent;
 }
@@ -2380,7 +2311,7 @@ tr:hover td {
 
 .card-deleted {
   border-color: rgba(239, 68, 68, 0.25);
-  background: rgba(23, 24, 38, 0.75);
+  background: color-mix(in srgb, var(--bg-card) 75%, transparent);
 }
 
 .card-deleted:hover {
@@ -2397,7 +2328,7 @@ tr:hover td {
 
 .btn-danger:hover:not(:disabled) {
   background: #ef4444;
-  color: #ffffff;
+  color: var(--text-primary);
   border-color: #ef4444;
   box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35);
 }
@@ -2411,7 +2342,7 @@ tr:hover td {
 
 .btn-restore:hover:not(:disabled) {
   background: var(--success);
-  color: #0f101a;
+  color: var(--accent-contrast);
   border-color: var(--success);
   box-shadow: 0 2px 10px rgba(52, 211, 153, 0.3);
 }
@@ -2545,7 +2476,7 @@ tr:hover td {
   justify-content: space-between;
   gap: 10px;
   background: var(--bg-glass);
-  border: 1px dashed rgba(255, 199, 0, 0.4);
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
   padding: 10px 14px;
   border-radius: var(--radius-sm);
   margin-bottom: 18px;
@@ -2635,8 +2566,8 @@ tr:hover td {
 /* Quiz Access Management Card */
 .access-control-card {
   padding: 24px;
-  border: 1px solid rgba(255, 199, 0, 0.22);
-  background: linear-gradient(180deg, rgba(23, 24, 38, 0.95) 0%, rgba(18, 19, 30, 0.98) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 95%, transparent) 0%, color-mix(in srgb, var(--bg-primary) 98%, transparent) 100%);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   margin-top: 24px;
@@ -2692,7 +2623,7 @@ tr:hover td {
   padding: 28px;
   flex-wrap: wrap;
   gap: 24px;
-  background: linear-gradient(135deg, rgba(23, 24, 38, 0.96) 0%, rgba(30, 32, 50, 0.92) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-secondary) 96%, transparent) 0%, color-mix(in srgb, var(--bg-card) 92%, transparent) 100%);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
@@ -2808,7 +2739,7 @@ tr:hover td {
   max-width: 520px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 1px rgba(255, 199, 0, 0.4);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2849,7 +2780,7 @@ tr:hover td {
 .modal-close:hover,
 .modal-close-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   border-color: var(--accent);
 }
 
@@ -3166,7 +3097,7 @@ tr:hover td {
 }
 
 .toggle-switch-container input:checked+.toggle-slider {
-  background-color: rgba(255, 199, 0, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
   border-color: var(--accent);
   box-shadow: 0 0 10px var(--accent-glow);
 }
@@ -3188,7 +3119,7 @@ tr:hover td {
 
 /* ── Unified Page Header Card (QUIZZUP Design System) ── */
 .page-header-card {
-  background: linear-gradient(135deg, rgba(23, 24, 38, 0.88) 0%, rgba(15, 16, 26, 0.96) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bg-secondary) 88%, transparent) 0%, color-mix(in srgb, var(--bg-primary) 96%, transparent) 100%);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 22px 26px;
@@ -3284,7 +3215,7 @@ tr:hover td {
   align-items: center;
   gap: 18px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);
   flex-wrap: wrap;
 }
 
@@ -3319,7 +3250,7 @@ tr:hover td {
 .header-metric-sep {
   width: 1px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
   flex-shrink: 0;
 }
 
@@ -3400,32 +3331,32 @@ tr:hover td {
 }
 
 .dash-hero-card-create {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.16) 0%, rgba(16, 185, 129, 0.05) 100%);
-  border: 1px solid rgba(52, 211, 153, 0.28);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent) 0%, color-mix(in srgb, var(--accent) 5%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .dash-hero-card-create:hover {
-  border-color: rgba(52, 211, 153, 0.55);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(16, 185, 129, 0.14);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .dash-hero-card-students {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.16) 0%, rgba(99, 102, 241, 0.05) 100%);
-  border: 1px solid rgba(139, 92, 246, 0.28);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent) 0%, color-mix(in srgb, var(--accent) 5%, transparent) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .dash-hero-card-students:hover {
-  border-color: rgba(139, 92, 246, 0.55);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(139, 92, 246, 0.14);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .dash-hero-card-icon-circle {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -3573,10 +3504,10 @@ tr:hover td {
   font-family: monospace;
   font-weight: 700;
   color: var(--accent);
-  background: rgba(255, 199, 0, 0.1);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 199, 0, 0.2);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .dash-quiz-actions {
@@ -3623,8 +3554,8 @@ tr:hover td {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 199, 0, 0.2), rgba(255, 199, 0, 0.05));
-  border: 1px solid rgba(255, 199, 0, 0.3);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--accent) 5%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   color: var(--accent);
   display: flex;
   align-items: center;

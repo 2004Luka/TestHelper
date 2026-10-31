@@ -20,6 +20,8 @@ TESTGENERATOR/
 ├── AGENTS.md                       # Root instructions loaded by AI agents every turn
 ├── STRUCTURE.md                    # Fast AI structure map & zero-credit dispatch table
 ├── client/                         # Frontend SPA (Vite + React 18 + Vanilla CSS)
+│   ├── public/
+│   │   └── quizzup-landing-bg.avif # Landing page background image
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── client.js           # Axios/Fetch endpoint helpers

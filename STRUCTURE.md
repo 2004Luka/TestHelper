@@ -29,7 +29,7 @@ Match your task to the problem domain below. Open **ONLY** the designated target
 
 ## 2. Core Architecture at a Glance
 
-- **Client (`client/`):** React 18 SPA bundled with Vite. Single stylesheet `client/src/index.css` contains all design tokens (`:root`), classes, and responsive styles. Context providers (`AuthContext`, `LanguageContext`, `StyleContext`) wrap the app in `main.jsx`.
+- **Client (`client/`):** React 18 SPA bundled with Vite. Static assets live in `client/public/`; the landing page background is `client/public/quizzup-landing-bg.avif`. Single stylesheet `client/src/index.css` contains all design tokens (`:root`), classes, and responsive styles. Context providers (`AuthContext`, `LanguageContext`, `StyleContext`) wrap the app in `main.jsx`.
 - **Server (`server/`):** Node.js + Express REST API. Controllers in `server/controllers/`, Mongoose models in `server/models/`, routes in `server/routes/`, auth middleware in `server/middleware/authMiddleware.js`.
 - **Database:** MongoDB connected via Mongoose in `server/config/db.js`.
 

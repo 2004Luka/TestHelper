@@ -7,7 +7,7 @@ This is the authoritative reference for all AI styling work. Before making ANY v
 ## 1. Design System Overview
 
 **Brand:** QUIZZUP  
-**Theme:** Electric Golden Yellow & Midnight Navy  
+**Theme:** Charcoal & Luxury Gold  
 **Approach:** CSS custom properties (`:root` variables) in a single `index.css` file, consumed by all components via `var(--token-name)`.  
 **State management:** `StyleContext.jsx` handles theme switching (dark/light), persists to `localStorage`, and exposes tokens + helpers.
 
@@ -20,33 +20,33 @@ All styling MUST use the existing CSS variable tokens defined in `:root` of `ind
 ### Color Tokens
 | Token | Dark Value | Purpose |
 |:---|:---|:---|
-| `--accent` | `#FFC700` | Primary brand / CTA color |
-| `--accent-hover` | `#FFD633` | Hover state for accent |
-| `--accent-dark` | `#D9A800` | Pressed / active accent |
-| `--accent-glow` | `rgba(255,199,0,0.22)` | Glow / shadow effects |
-| `--accent-subtle` | `rgba(255,199,0,0.1)` | Subtle accent backgrounds |
-| `--accent-contrast` | `#0F101A` | Text on accent backgrounds |
+| `--accent` | `#D4AF37` | Primary brand / CTA color |
+| `--accent-hover` | `#E2C15A` | Hover state for accent |
+| `--accent-dark` | `#A88920` | Pressed / active accent |
+| `--accent-glow` | `rgba(212,175,55,0.2)` | Glow / shadow effects |
+| `--accent-subtle` | `rgba(212,175,55,0.08)` | Subtle accent backgrounds |
+| `--accent-contrast` | `#111113` | Text on accent backgrounds |
 
 ### Background Tokens
 | Token | Dark Value | Purpose |
 |:---|:---|:---|
-| `--bg-primary` | `#0F101A` | Page background |
-| `--bg-secondary` | `#171826` | Section / sidebar backgrounds |
-| `--bg-card` | `rgba(23,24,38,0.92)` | Card surfaces |
-| `--bg-card-hover` | `rgba(30,32,50,0.95)` | Card hover state |
+| `--bg-primary` | `#101012` | Page background |
+| `--bg-secondary` | `#1A1A1D` | Section / sidebar backgrounds |
+| `--bg-card` | `rgba(31,31,34,0.94)` | Card surfaces |
+| `--bg-card-hover` | `rgba(42,42,46,0.96)` | Card hover state |
 | `--bg-glass` | `rgba(255,255,255,0.04)` | Glass/frosted backgrounds |
 
 ### Text Tokens
 | Token | Dark Value | Purpose |
 |:---|:---|:---|
-| `--text-primary` | `#F3F4F8` | Headings & body text |
-| `--text-secondary` | `#99A0B8` | Secondary / label text |
-| `--text-muted` | `#626880` | Placeholder / disabled text |
+| `--text-primary` | `#F8FAFC` | Headings & body text |
+| `--text-secondary` | `#C3C3C8` | Secondary / label text |
+| `--text-muted` | `#92929A` | Placeholder / disabled text |
 
 ### Status Tokens
 | Token | Purpose |
 |:---|:---|
-| `--status-on` / `--status-on-bg` / `--status-on-border` | Active / enabled states (yellow) |
+| `--status-on` / `--status-on-bg` / `--status-on-border` | Active / enabled states (gold) |
 | `--status-off` / `--status-off-bg` / `--status-off-border` | Inactive / disabled states (gray) |
 
 ### Semantic Colors
@@ -54,7 +54,7 @@ All styling MUST use the existing CSS variable tokens defined in `:root` of `ind
 |:---|:---|:---|
 | `--success` | `#34D399` | Success messages / indicators |
 | `--error` | `#F87171` | Error messages / destructive actions |
-| `--warning` | `#FBBF24` | Warning messages / caution |
+| `--warning` | `#D4AF37` | Warning messages / caution |
 
 ### Geometry & Spacing
 | Token | Value |
@@ -98,7 +98,7 @@ All styling MUST use the existing CSS variable tokens defined in `:root` of `ind
 - Place ALL new CSS in `index.css` — no separate CSS modules or CSS-in-JS.
 
 ### DO NOT [PROHIBITED]
-- Never hardcode colors like `color: #FFC700` in JSX `style={{}}` — always use CSS classes or `var()`.
+- Never hardcode colors like `color: #D4AF37` in JSX `style={{}}` — always use CSS classes or `var()`.
 - Never create new `.css` files. All styles live in `index.css`.
 - Never use Tailwind, styled-components, or CSS modules.
 - Never remove existing CSS classes without verifying they aren't used by other components.
