@@ -1,4 +1,5 @@
-const rawBase = import.meta.env.VITE_API_URL || '/api';
+// Use Netlify's same-origin proxy in production so Safari treats auth cookies as first-party.
+const rawBase = import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || '/api');
 const BASE = rawBase.replace(/\/$/, '');
 
 if (import.meta.env.PROD && typeof window !== 'undefined') {
