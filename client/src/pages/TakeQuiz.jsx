@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import Logo from '../components/Logo';
+import ImageQuizViewer from '../components/ImageQuizViewer';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function TakeQuiz() {
   const { shareCode } = useParams();
+  const navigate = useNavigate();
   const { lang, t } = useLanguage();
   const { student } = useAuth();
   const [quiz, setQuiz] = useState(null);
@@ -19,6 +21,15 @@ export default function TakeQuiz() {
   const [error, setError] = useState('');
   const [timeLeft, setTimeLeft] = useState(null);
   const [displayQuestions, setDisplayQuestions] = useState([]);
+
+  const handleBack = useCallback(() => {
+    const historyIndex = window.history.state?.idx;
+    if (typeof historyIndex === 'number' && historyIndex > 0) {
+      navigate(-1);
+    } else {
+      navigate('/student/portal', { replace: true });
+    }
+  }, [navigate]);
 
   const letters = lang === 'ka' 
     ? ['ა', 'ბ', 'გ', 'დ', 'ე', 'ვ']
@@ -285,6 +296,11 @@ export default function TakeQuiz() {
             <h1 className="card-title" style={{ fontSize: '1.5rem', marginBottom: 4 }}>
               {quiz.title}
             </h1>
+            {quiz.quizType === 'image' && (
+              <div style={{ marginBottom: 12 }}>
+                <span className="badge badge-accent">{t('imageQuizBadge')}</span>
+              </div>
+            )}
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
               {quiz.questions.length} {t('questionsText')}
               {quiz.settings?.timeLimit > 0 && ` · ${quiz.settings.timeLimit} ${t('timeLimit')}`}
@@ -317,10 +333,35 @@ export default function TakeQuiz() {
   }
 
   // QUIZ-TAKING VIEW
+  if (quiz.quizType === 'image') {
+    return (
+      <ImageQuizViewer
+        quiz={quiz}
+        showBackButton={Boolean(student)}
+        onBack={handleBack}
+        answers={answers}
+        onAnswer={handleAnswer}
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        timeLeft={timeLeft}
+        formatTime={formatTime}
+      />
+    );
+  }
+
   const answeredCount = Object.keys(answers).length;
 
   return (
     <div className="page">
+      {student && (
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm quiz-back-button"
+          onClick={handleBack}
+        >
+          {t('back')}
+        </button>
+      )}
       <div className="quiz-header">
         <div>
           <h1 className="page-title" style={{ marginBottom: 0 }}>{quiz.title}</h1>

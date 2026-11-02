@@ -123,11 +123,11 @@ export default function QuizAccessControl({ shareCode }) {
       {activeTab === 'classes' ? (
         /* Whole Class Access List */
         <div className="classes-access-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-            <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+          <div className="classes-access-header">
+            <span className="classes-access-label">
               {t('toggleClassAvailability')}
             </span>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div className="classes-access-actions">
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => handleUpdate({ openAllClasses: true })}

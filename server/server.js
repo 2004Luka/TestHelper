@@ -55,7 +55,9 @@ app.set('trust proxy', 1);
 
 // Middleware
 // Security HTTP headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
   next();

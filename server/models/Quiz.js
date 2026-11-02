@@ -17,6 +17,8 @@ const quizSchema = new mongoose.Schema(
       index: true,
     },
     title: { type: String, required: true },
+    quizType: { type: String, enum: ['standard', 'image'], default: 'standard' },
+    backgroundImage: { type: String, default: '' },
     questions: [questionSchema],
     shareCode: { type: String, unique: true, required: true },
     isActive: { type: Boolean, default: true },

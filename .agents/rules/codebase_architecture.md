@@ -28,6 +28,7 @@ TESTGENERATOR/
 │   │   ├── components/
 │   │   │   ├── Discussion.jsx      # Comment / discussion widget
 │   │   │   ├── FileUpload.jsx      # File upload input component
+│   │   │   ├── ImageQuizViewer.jsx # Pan/zoom canvas & question modal for image quizzes
 │   │   │   ├── Logo.jsx            # QUIZZUP brand logo
 │   │   │   ├── ProtectedRoute.jsx  # Auth-gated route wrapper
 │   │   │   ├── QuizAccessControl.jsx # Test permission & class/student access panel
@@ -49,6 +50,8 @@ TESTGENERATOR/
 │   │   │   ├── TakeQuiz.jsx        # Student quiz-taking interface
 │   │   │   ├── TeacherSettings.jsx # Teacher profile, direct registration link, & settings full page
 │   │   │   └── TeacherStudents.jsx # Teacher classes & students roster management
+│   │   ├── utils/
+│   │   │   └── imageCompressor.js  # Client-side image resizer & WebP optimizer
 │   │   ├── App.jsx                 # Navigation, routing, and layout shell
 │   │   ├── index.css               # Unified QUIZZUP design system & CSS variables
 │   │   ├── main.jsx                # React DOM root & provider wrapper tree

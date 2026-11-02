@@ -8,14 +8,33 @@ import {
 } from '../utils/wordParser.js';
 import { nanoid } from 'nanoid';
 import fs from 'fs/promises';
+import path from 'path';
 import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
+
+const MAX_BACKGROUND_IMAGE_BYTES = 5 * 1024 * 1024;
 
 // POST /api/quizzes — Create quiz from two uploaded Word files (Teacher protected)
 export const createQuiz = async (req, res, next) => {
   try {
-    const { title, settings } = req.body;
+    const { title, settings, quizType } = req.body;
     const testFile = req.files?.testFile?.[0];
     const answerFile = req.files?.answerFile?.[0];
+    const imageFile = req.files?.imageFile?.[0];
+
+    if ((imageFile?.size || 0) > MAX_BACKGROUND_IMAGE_BYTES) {
+      return res.status(413).json({
+        success: false,
+        message: 'Background image must be 5 MB or smaller after compression',
+      });
+    }
+
+    const isImageQuiz = quizType === 'image' || Boolean(imageFile);
+
+    if (isImageQuiz && !imageFile && !imageBase64) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Background image is required for image tests' });
+    }
 
     if (!testFile || !answerFile) {
       return res
@@ -48,22 +67,32 @@ export const createQuiz = async (req, res, next) => {
       }
     }
 
+    // Persist compressed image in database so any student on any device can access it
+    let storedImage = '';
+    if (imageFile) {
+      const buffer = await fs.readFile(imageFile.path);
+      const mime = imageFile.mimetype || 'image/jpeg';
+      storedImage = `data:${mime};base64,${buffer.toString('base64')}`;
+    }
+
     const quiz = await Quiz.create({
       teacher: req.teacher?._id,
       title: title || 'Untitled Quiz',
+      quizType: isImageQuiz ? 'image' : 'standard',
+      backgroundImage: storedImage,
       questions: mergedQuestions,
       shareCode,
       settings: parsedSettings,
     });
 
-    // Cleanup temporary uploads after a successful parse and save.
-    await Promise.all([fs.unlink(testFile.path), fs.unlink(answerFile.path)]).catch(() => {});
-
-    res.status(201).json({ success: true, data: quiz });
+    const responseQuiz = quiz.toObject();
+    delete responseQuiz.backgroundImage;
+    res.status(201).json({ success: true, data: responseQuiz });
   } catch (err) {
+    next(err);
+  } finally {
     const uploadedFiles = Object.values(req.files || {}).flat();
     await Promise.all(uploadedFiles.map((file) => fs.unlink(file.path).catch(() => {})));
-    next(err);
   }
 };
 
@@ -83,6 +112,7 @@ export const getAllQuizzes = async (req, res, next) => {
     const sortOrder = isDeletedQuery ? { deletedAt: -1, updatedAt: -1 } : { createdAt: -1 };
 
     const quizzes = await Quiz.find(filter)
+      .select('-backgroundImage')
       .sort(sortOrder)
       .lean();
 
@@ -138,11 +168,38 @@ export const getQuizByCode = async (req, res, next) => {
       });
     }
 
+    // Auto-migrate legacy file-based background image into MongoDB Data URI
+    let bgImage = quiz.backgroundImage || '';
+    if (bgImage && !bgImage.startsWith('data:') && !bgImage.startsWith('http')) {
+      const normalized = bgImage.replace(/\\/g, '/');
+      const candidatePaths = [
+        path.resolve('uploads', path.basename(normalized)),
+      ];
+      for (const p of candidatePaths) {
+        try {
+          const buf = await fs.readFile(p);
+          const ext = path.extname(p).toLowerCase();
+          const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+          bgImage = `data:${mime};base64,${buf.toString('base64')}`;
+          quiz.backgroundImage = bgImage;
+          await quiz.save();
+          break;
+        } catch {}
+      }
+    }
+
     // Return an explicit student-safe shape; never expose teacher or roster IDs.
+    const backgroundImage = bgImage
+      ? bgImage.startsWith('http')
+        ? bgImage
+        : `/api/quizzes/${quiz.shareCode}/image`
+      : '';
     const safe = {
       _id: quiz._id,
       title: quiz.title,
       shareCode: quiz.shareCode,
+      quizType: quiz.quizType || 'standard',
+      backgroundImage,
       isActive: quiz.isActive,
       settings: quiz.settings,
       accessMode: quiz.accessMode,
@@ -160,6 +217,61 @@ export const getQuizByCode = async (req, res, next) => {
   }
 };
 
+// GET /api/quizzes/:shareCode/image — Fetch an image for an authorized quiz participant
+export const getQuizImage = async (req, res, next) => {
+  try {
+    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode });
+    if (!quiz || quiz.isDeleted || !quiz.backgroundImage) {
+      return res.status(404).json({ success: false, message: 'Image not found' });
+    }
+
+    if (req.student) {
+      const studentTeacherId = req.student.teacher?._id || req.student.teacher;
+      if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+        return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+      }
+    }
+
+    const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
+    if (!accessEvaluation.hasAccess) {
+      return res.status(403).json({
+        success: false,
+        requiresLogin: accessEvaluation.requiresLogin,
+        accessDenied: true,
+        message: accessEvaluation.message,
+      });
+    }
+
+    if (quiz.backgroundImage.startsWith('data:image/')) {
+      const parts = quiz.backgroundImage.split(';base64,');
+      const mime = parts[0].replace('data:', '') || 'image/jpeg';
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime) || !parts[1]) {
+        return res.status(415).json({ success: false, message: 'Unsupported image format' });
+      }
+      const buffer = Buffer.from(parts[1], 'base64');
+      res.set('Content-Type', mime);
+      res.set('Cache-Control', 'private, no-store');
+      return res.send(buffer);
+    }
+
+    const normalized = quiz.backgroundImage.replace(/\\/g, '/');
+    const candidatePaths = [
+      path.resolve('uploads', path.basename(normalized)),
+    ];
+
+    for (const p of candidatePaths) {
+      try {
+        await fs.access(p);
+        return res.sendFile(p);
+      } catch {}
+    }
+
+    return res.status(404).json({ success: false, message: 'Image file not found on server' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET /api/quizzes/:shareCode/full — Teacher view with answers (Teacher protected)
 export const getFullQuiz = async (req, res, next) => {
   try {
@@ -170,7 +282,7 @@ export const getFullQuiz = async (req, res, next) => {
     const quiz = await Quiz.findOne({
       shareCode: req.params.shareCode,
       teacher: req.teacher._id,
-    });
+    }).select('-backgroundImage');
     if (!quiz) {
       return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
     }

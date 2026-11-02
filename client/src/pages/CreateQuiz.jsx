@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import api from '../api/client';
 import FileUpload from '../components/FileUpload';
 import QuizPreview from '../components/QuizPreview';
 import QuizSettings from '../components/QuizSettings';
 import { useLanguage } from '../context/LanguageContext';
+import { compressImage } from '../utils/imageCompressor';
 
 export default function CreateQuiz() {
   const { t } = useLanguage();
+  const [quizMode, setQuizMode] = useState('standard');
+  const [imageFile, setImageFile] = useState(null);
+  const [compressedImage, setCompressedImage] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [compressing, setCompressing] = useState(false);
   const [testFile, setTestFile] = useState(null);
   const [answerFile, setAnswerFile] = useState(null);
   const [title, setTitle] = useState('');
@@ -18,8 +24,50 @@ export default function CreateQuiz() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const imageSelectionRef = useRef(0);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl('');
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [imageFile]);
+
+  const handleImageSelect = async (file) => {
+    const selectionId = ++imageSelectionRef.current;
+    if (!file) {
+      setImageFile(null);
+      setCompressedImage(null);
+      setCompressing(false);
+      setError('');
+      return;
+    }
+    setImageFile(file);
+    setCompressedImage(null);
+    setError('');
+    try {
+      setCompressing(true);
+      const res = await compressImage(file);
+      if (selectionId !== imageSelectionRef.current) return;
+      setCompressedImage(res);
+    } catch (err) {
+      if (selectionId !== imageSelectionRef.current) return;
+      console.error('Image compression failed:', err);
+      setError(err.message);
+    } finally {
+      if (selectionId === imageSelectionRef.current) setCompressing(false);
+    }
+  };
 
   const handleCreate = async () => {
+    if (quizMode === 'image' && !imageFile) {
+      setError(t('imageFileLabel') + ' is required');
+      return;
+    }
     if (!testFile || !answerFile) {
       setError(t('createSubtitle'));
       return;
@@ -30,6 +78,23 @@ export default function CreateQuiz() {
 
     try {
       const formData = new FormData();
+      formData.append('quizType', quizMode);
+      if (quizMode === 'image') {
+        let comp = compressedImage;
+        if (!comp && imageFile) {
+          comp = await compressImage(imageFile);
+          setCompressedImage(comp);
+        }
+        if (comp?.blob) {
+          formData.append(
+            'imageFile',
+            comp.blob,
+            imageFile.name.replace(/\.[^.]+$/, '.webp')
+          );
+        } else if (imageFile) {
+          formData.append('imageFile', imageFile);
+        }
+      }
       formData.append('testFile', testFile);
       formData.append('answerFile', answerFile);
       formData.append('title', title || 'Untitled Quiz');
@@ -90,6 +155,8 @@ export default function CreateQuiz() {
               className="btn btn-secondary"
               onClick={() => {
                 setQuiz(null);
+                setImageFile(null);
+                setCompressedImage(null);
                 setTestFile(null);
                 setAnswerFile(null);
                 setTitle('');
@@ -112,7 +179,45 @@ export default function CreateQuiz() {
   return (
     <div className="page">
       <h1 className="page-title">{t('createTitle')}</h1>
-      <p className="page-subtitle">{t('createSubtitle')}</p>
+      <p className="page-subtitle">
+        {quizMode === 'image' ? t('createImageSubtitle') : t('createSubtitle')}
+      </p>
+
+      {/* Mode Switcher Tabs */}
+      <div
+        style={{
+          display: 'inline-flex',
+          gap: 6,
+          background: 'var(--bg-secondary)',
+          padding: 4,
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid var(--border-color)',
+          marginBottom: 24,
+        }}
+      >
+        <button
+          type="button"
+          className={`btn btn-sm ${quizMode === 'standard' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => {
+            setQuizMode('standard');
+            setError('');
+          }}
+          style={{ padding: '8px 18px', fontWeight: 600 }}
+        >
+          {t('tabStandardQuiz')}
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${quizMode === 'image' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => {
+            setQuizMode('image');
+            setError('');
+          }}
+          style={{ padding: '8px 18px', fontWeight: 600 }}
+        >
+          {t('tabImageQuiz')}
+        </button>
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -125,6 +230,65 @@ export default function CreateQuiz() {
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
+
+      {/* Image Upload Zone (Only in Image Quiz Mode) */}
+      {quizMode === 'image' && (
+        <div className="form-group" style={{ marginBottom: 24 }}>
+          <div className="form-label">{t('imageFileLabel')}</div>
+          <FileUpload
+            accept="image/png,image/jpeg,image/webp"
+            label={t('imageFileSubLabel')}
+            file={imageFile}
+            onFile={handleImageSelect}
+          />
+          {compressing && (
+            <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--accent)' }}>
+              Optimizing image for database & student devices...
+            </div>
+          )}
+          {imageFile && (
+            <div
+              style={{
+                marginTop: 12,
+                borderRadius: 'var(--radius-md)',
+                overflow: 'hidden',
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(0, 0, 0, 0.3)',
+                padding: 12,
+                gap: 8,
+              }}
+            >
+              <img
+                src={compressedImage?.dataUrl || imagePreviewUrl}
+                alt="Selected Background Preview"
+                style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }}
+              />
+              {compressedImage && (
+                <div
+                  style={{
+                    fontSize: '0.78rem',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <span className="badge badge-success">
+                    {Math.round(compressedImage.compressedSize / 1024)} KB
+                  </span>
+                  <span>
+                    Original: {Math.round(compressedImage.originalSize / 1024)} KB (reduced {compressedImage.compressionRatio}%)
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid-2">
         <div>
@@ -151,7 +315,13 @@ export default function CreateQuiz() {
         <button
           className="btn btn-primary btn-lg"
           onClick={handleCreate}
-          disabled={loading || !testFile || !answerFile}
+          disabled={
+            loading ||
+            compressing ||
+            !testFile ||
+            !answerFile ||
+            (quizMode === 'image' && (!imageFile || !compressedImage))
+          }
         >
           {loading ? (
             <>

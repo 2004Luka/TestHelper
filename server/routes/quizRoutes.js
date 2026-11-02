@@ -5,6 +5,7 @@ import {
   createQuiz,
   getAllQuizzes,
   getQuizByCode,
+  getQuizImage,
   getFullQuiz,
   toggleQuiz,
   deleteQuiz,
@@ -15,7 +16,16 @@ import { protect, optionalAuth } from '../middleware/authMiddleware.js';
 const router = Router();
 const upload = multer({
   dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024, files: 2, fields: 4, fieldSize: 64 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 3, fields: 10, fieldSize: 64 * 1024 },
+  fileFilter: (req, file, callback) => {
+    if (
+      file.fieldname === 'imageFile' &&
+      !['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)
+    ) {
+      return callback(null, false);
+    }
+    callback(null, true);
+  },
 });
 
 // Protected teacher routes (listed first so specific paths like /:shareCode/full are matched correctly)
@@ -31,6 +41,7 @@ router.post(
   upload.fields([
     { name: 'testFile', maxCount: 1 },
     { name: 'answerFile', maxCount: 1 },
+    { name: 'imageFile', maxCount: 1 },
   ]),
   mongoSanitize(),
   createQuiz
@@ -38,6 +49,7 @@ router.post(
 
 // Public student routes (with optional student/teacher authentication)
 router.get('/code/:shareCode', optionalAuth, getQuizByCode);
+router.get('/:shareCode/image', optionalAuth, getQuizImage);
 router.get('/:shareCode', optionalAuth, getQuizByCode);
 
 export default router;

@@ -15,7 +15,7 @@ async function handleResponse(res) {
     if (!res.ok) {
       if (res.status === 404) {
         throw new Error(
-          'Backend API endpoint not found (404). Please check that VITE_API_URL environment variable is set in Netlify site settings (e.g. https://your-server.onrender.com/api).'
+          'Backend API endpoint not found (404). Verify that the Netlify /api redirect targets the deployed backend.'
         );
       }
       throw new Error(`Server returned error status ${res.status}: ${res.statusText}`);

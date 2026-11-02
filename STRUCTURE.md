@@ -14,9 +14,9 @@ Match your task to the problem domain below. Open **ONLY** the designated target
 | **Georgian / English Translations** | `client/src/translations.js`<br>`client/src/context/LanguageContext.jsx` | — |
 | **Frontend Auth & Session** | `client/src/context/AuthContext.jsx`<br>`client/src/pages/Login.jsx`<br>`client/src/pages/Register.jsx` | `triage_decision_tree.md` |
 | **Backend Auth & JWT** | `server/controllers/authController.js`<br>`server/controllers/studentAuthController.js`<br>`server/middleware/authMiddleware.js`<br>`server/models/Teacher.js`<br>`server/models/Student.js` | `triage_decision_tree.md` |
-| **Quiz Creation & Editing** | `client/src/pages/CreateQuiz.jsx`<br>`client/src/pages/QuizDetail.jsx`<br>`server/controllers/quizController.js`<br>`server/models/Quiz.js` | `triage_decision_tree.md` |
+| **Quiz Creation & Editing** | `client/src/pages/CreateQuiz.jsx`<br>`client/src/utils/imageCompressor.js`<br>`client/src/pages/QuizDetail.jsx`<br>`server/controllers/quizController.js`<br>`server/models/Quiz.js` | `triage_decision_tree.md` |
 | **Quiz Access & Class Permissions** | `server/utils/quizAccess.js`<br>`client/src/components/QuizAccessControl.jsx`<br>`server/controllers/classController.js` | `learned_preferences.md` (§ Quiz Access) |
-| **Quiz Taking & Grading** | `client/src/pages/TakeQuiz.jsx`<br>`server/controllers/submissionController.js`<br>`server/models/Submission.js` | `triage_decision_tree.md` |
+| **Quiz Taking & Grading** | `client/src/pages/TakeQuiz.jsx`<br>`client/src/components/ImageQuizViewer.jsx`<br>`server/controllers/submissionController.js`<br>`server/models/Submission.js` | `triage_decision_tree.md` |
 | **Comments / Discussion Widget** | `client/src/components/Discussion.jsx`<br>`server/controllers/commentController.js`<br>`server/models/Comment.js` | `triage_decision_tree.md` |
 | **Docx Uploads & Parsing** | `client/src/components/FileUpload.jsx`<br>`server/utils/wordParser.js` | — |
 | **Teacher Settings & Profile** | `client/src/pages/TeacherSettings.jsx` (dedicated page) | `learned_preferences.md` (§ Settings) |
