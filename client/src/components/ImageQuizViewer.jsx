@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function ImageQuizViewer({
@@ -63,16 +63,6 @@ export default function ImageQuizViewer({
       } catch {}
     };
   }, []);
-
-  // Center image on mount or when container loads
-  const handleReset = useCallback(() => {
-    setScale(1);
-    setPos({ x: 0, y: 0 });
-  }, []);
-
-  // Zoom helpers
-  const handleZoomIn = () => setScale((s) => Math.min(s * 1.25, 5));
-  const handleZoomOut = () => setScale((s) => Math.max(s * 0.8, 0.4));
 
   // Mouse wheel zoom on canvas
   const handleWheel = (e) => {
@@ -205,23 +195,25 @@ export default function ImageQuizViewer({
     }
   };
 
-  const apiBase = import.meta.env.PROD
-    ? ''
-    : import.meta.env.VITE_API_URL
-    ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-    : '';
-  const apiFallbackUrl = `${apiBase}/api/quizzes/${quiz.shareCode}/image`;
+  const apiBase = (
+    import.meta.env.PROD
+      ? '/api'
+      : import.meta.env.VITE_API_URL || '/api'
+  ).replace(/\/+$/, '');
+  const apiOrigin = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
+  const apiFallbackUrl = `${apiBase}/quizzes/${quiz.shareCode}/image`;
   const imageUrl = quiz.backgroundImage
     ? quiz.backgroundImage.startsWith('data:') || quiz.backgroundImage.startsWith('http')
       ? quiz.backgroundImage
       : quiz.backgroundImage.startsWith('/api/')
-      ? `${apiBase}${quiz.backgroundImage}`
+      ? `${apiOrigin}${quiz.backgroundImage}`
       : apiFallbackUrl
     : apiFallbackUrl;
   const [imgSrc, setImgSrc] = useState(imageUrl);
-  const isApiImage = imgSrc === apiFallbackUrl || imgSrc.startsWith('/api/');
+  const isApiImage =
+    imgSrc === apiFallbackUrl || imgSrc.startsWith(`${apiOrigin}/api/`);
   const handleImgError = () => {
-    if (imgSrc !== apiFallbackUrl) setImgSrc(apiFallbackUrl);
+    if (!isApiImage && imgSrc !== apiFallbackUrl) setImgSrc(apiFallbackUrl);
   };
 
   return (
@@ -325,39 +317,6 @@ export default function ImageQuizViewer({
           />
         </div>
 
-        {/* Floating Zoom Controls (Desktop only) */}
-        {!isModalOpen && (
-          <div className="image-quiz-zoom-controls">
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={handleZoomIn}
-              title={t('zoomIn')}
-              style={{ width: 32, height: 32, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
-            >
-              +
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={handleZoomOut}
-              title={t('zoomOut')}
-              style={{ width: 32, height: 32, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
-            >
-              −
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={handleReset}
-              title={t('resetZoom')}
-              style={{ padding: '0 8px', fontSize: '0.8rem' }}
-            >
-              {t('resetZoom')}
-            </button>
-          </div>
-        )}
-
         {/* Floating Side Left: Finish Test (Desktop only) */}
         {!isModalOpen && (
           <button
@@ -395,34 +354,6 @@ export default function ImageQuizViewer({
         {/* Ergonomic Mobile Bottom Action Dock (Mobile only <= 768px) */}
         {!isModalOpen && (
           <div className="image-quiz-mobile-dock">
-            <div className="image-quiz-mobile-zoom">
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={handleZoomOut}
-                title={t('zoomOut')}
-              >
-                −
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={handleReset}
-                style={{ width: 'auto', padding: '0 6px', fontSize: '0.72rem', fontWeight: 600 }}
-                title={t('resetZoom')}
-              >
-                {Math.round(scale * 100)}%
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={handleZoomIn}
-                title={t('zoomIn')}
-              >
-                +
-              </button>
-            </div>
-
             <button
               type="button"
               className="btn btn-primary image-quiz-mobile-questions-btn"
@@ -684,12 +615,12 @@ export default function ImageQuizViewer({
                 </button>
               </div>
 
-              {/* Footer action: Hint + Submit */}
+              {/* Footer hint */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
+                  justifyContent: 'flex-start',
                   paddingTop: 4,
                   borderTop: '1px solid color-mix(in srgb, var(--border-color) 60%, transparent)',
                   fontSize: '0.78rem',
@@ -697,15 +628,6 @@ export default function ImageQuizViewer({
                 }}
               >
                 <span>{t('swipeOrArrowHint')}</span>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={onSubmit}
-                  disabled={submitting}
-                  style={{ fontWeight: 700, padding: '4px 12px', fontSize: '0.8rem' }}
-                >
-                  {submitting ? t('btnProcessing') : t('submitQuiz')}
-                </button>
               </div>
             </div>
           </div>
