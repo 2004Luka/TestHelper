@@ -1,6 +1,6 @@
 const blobFromDataUrl = (dataUrl) => {
   const [metadata, encoded] = dataUrl.split(',');
-  const mime = metadata.match(/^data:(.*?);base64$/)?.[1] || 'application/octet-stream';
+  const mime = metadata.match(/^data:([^;]+)/)?.[1] || 'image/jpeg';
   const binary = atob(encoded);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
@@ -12,12 +12,30 @@ const blobFromDataUrl = (dataUrl) => {
  * - Resizes max width/height to 1920px (preserving aspect ratio).
  * - Converts to WebP (with JPEG fallback) at 0.78 quality.
  * - Drastically reduces file size from 5-20MB down to ~150-300KB.
- * - Returns { dataUrl, blob, originalSize, compressedSize, compressionRatio }
+ * - Returns { dataUrl, blob, format, originalSize, compressedSize, compressionRatio }
  */
 export async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.78) {
   return new Promise((resolve, reject) => {
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file?.type)) {
-      reject(new Error('Choose a PNG, JPEG, or WebP image.'));
+    const fileType = (file?.type || '').toLowerCase();
+    const fileName = (file?.name || '').toLowerCase();
+    const isImageMime =
+      fileType.startsWith('image/') ||
+      [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/bmp',
+        'image/avif',
+        'image/heic',
+        'image/heif',
+        'image/tiff',
+      ].includes(fileType);
+    const hasImageExt = /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|tiff?|svg)$/i.test(fileName);
+
+    if (!isImageMime && !hasImageExt) {
+      reject(new Error('Please choose a valid image file (PNG, JPG, WebP, GIF, etc.).'));
       return;
     }
 
@@ -58,10 +76,14 @@ export async function compressImage(file, maxWidth = 1920, maxHeight = 1920, qua
       }
 
       const finishCompression = (blob) => {
-        const compressedBlob = blob || blobFromDataUrl(dataUrl);
+        let compressedBlob = blob;
+        if (!compressedBlob || !compressedBlob.type || compressedBlob.type === 'application/octet-stream') {
+          compressedBlob = blobFromDataUrl(dataUrl);
+        }
         resolve({
           dataUrl,
           blob: compressedBlob,
+          format,
           originalSize: file.size,
           compressedSize: compressedBlob.size,
           compressionRatio: Math.max(0, Math.round((1 - compressedBlob.size / file.size) * 100)),
@@ -69,7 +91,11 @@ export async function compressImage(file, maxWidth = 1920, maxHeight = 1920, qua
       };
 
       if (typeof canvas.toBlob === 'function') {
-        canvas.toBlob(finishCompression, format, quality);
+        try {
+          canvas.toBlob(finishCompression, format, quality);
+        } catch {
+          finishCompression(null);
+        }
       } else {
         finishCompression(null);
       }
@@ -77,7 +103,7 @@ export async function compressImage(file, maxWidth = 1920, maxHeight = 1920, qua
 
     img.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      reject(new Error('Failed to load image for compression'));
+      reject(new Error('Failed to load image for compression. Please choose a valid image file.'));
     };
 
     img.src = objectUrl;

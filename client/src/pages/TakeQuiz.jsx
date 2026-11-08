@@ -23,13 +23,21 @@ export default function TakeQuiz() {
   const [displayQuestions, setDisplayQuestions] = useState([]);
 
   const handleBack = useCallback(() => {
+    if (started && Object.keys(answers).length > 0) {
+      const confirmLeave = window.confirm(
+        lang === 'ka'
+          ? 'ნამდვილად გსურთ ტესტის დატოვება? თქვენი პროგრესი არ შეინახება.'
+          : 'Are you sure you want to leave the test? Your progress will not be saved.'
+      );
+      if (!confirmLeave) return;
+    }
     const historyIndex = window.history.state?.idx;
     if (typeof historyIndex === 'number' && historyIndex > 0) {
       navigate(-1);
     } else {
       navigate('/student/portal', { replace: true });
     }
-  }, [navigate]);
+  }, [answers, lang, navigate, started]);
 
   const letters = lang === 'ka' 
     ? ['ა', 'ბ', 'გ', 'დ', 'ე', 'ვ']
@@ -288,6 +296,16 @@ export default function TakeQuiz() {
   if (!started) {
     return (
       <div className="page">
+        {student && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm quiz-back-button"
+            onClick={handleBack}
+            style={{ marginBottom: 16 }}
+          >
+            ← {t('back')}
+          </button>
+        )}
         <div className="quiz-entry">
           <div className="card" style={{ textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>

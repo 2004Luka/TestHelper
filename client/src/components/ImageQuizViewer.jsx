@@ -32,6 +32,7 @@ export default function ImageQuizViewer({
 
   // Swipe detection for Question modal
   const swipeStartRef = useRef({ x: 0, y: 0 });
+  const lastTapRef = useRef(0);
 
   const questions = quiz.questions || [];
   const currentQ = questions[currentIdx] || null;
@@ -117,13 +118,27 @@ export default function ImageQuizViewer({
   // Touch handlers for image pan & pinch-zoom (only when modal is CLOSED)
   const handleTouchStart = (e) => {
     if (isModalOpen) return;
+    const now = Date.now();
     if (e.touches.length === 1) {
+      if (now - lastTapRef.current < 280) {
+        // Double-tap to zoom or reset view
+        if (scale > 1.2) {
+          setScale(1);
+          setPos({ x: 0, y: 0 });
+        } else {
+          setScale(2.2);
+        }
+        lastTapRef.current = 0;
+        return;
+      }
+      lastTapRef.current = now;
       setIsDragging(true);
       dragStartRef.current = {
         x: e.touches[0].clientX - pos.x,
         y: e.touches[0].clientY - pos.y,
       };
     } else if (e.touches.length === 2) {
+      lastTapRef.current = 0;
       setIsDragging(false);
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
@@ -145,7 +160,7 @@ export default function ImageQuizViewer({
         y: e.touches[0].clientY - dragStartRef.current.y,
       });
     } else if (e.touches.length === 2 && touchStateRef.current.initialDist) {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -224,67 +239,33 @@ export default function ImageQuizViewer({
       }}
     >
       {/* Top HUD Bar */}
-      <header
-        className="image-quiz-hud"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'rgba(16, 16, 18, 0.92)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid var(--border-color)',
-          zIndex: 60,
-          userSelect: 'none',
-        }}
-      >
-        <div className="image-quiz-hud-main" style={{ display: 'flex', alignItems: 'center' }}>
+      <header className="image-quiz-hud">
+        <div className="image-quiz-hud-left">
           {showBackButton && (
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onBack}>
-              {t('back')}
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={onBack}
+              style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+            >
+              ← {t('back')}
             </button>
           )}
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={onSubmit}
-            disabled={submitting}
-            style={{ fontWeight: 700 }}
-          >
-            {submitting ? t('btnProcessing') : t('submitQuiz')}
-          </button>
-          <span
-            className="image-quiz-hud-title"
-            style={{
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <span className="image-quiz-hud-title" title={quiz.title}>
             {quiz.title}
-          </span>
-          <span
-            className="image-quiz-hud-count"
-            style={{
-              borderRadius: 'var(--radius-pill)',
-              background: 'var(--accent-subtle)',
-              color: 'var(--accent)',
-              fontWeight: 600,
-              border: '1px solid var(--border-color)',
-            }}
-          >
-            {answeredCount}/{questions.length} {t('questionsText')}
           </span>
         </div>
 
-        <div className="image-quiz-hud-timer" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="image-quiz-hud-right">
+          <span className="image-quiz-hud-counter">
+            {answeredCount}/{questions.length}
+          </span>
           {timeLeft !== null && (
             <div
               className={`timer ${
                 timeLeft <= 60 ? 'danger' : timeLeft <= 300 ? 'warning' : ''
               }`}
-              style={{ padding: '4px 12px', fontSize: '0.9rem' }}
+              style={{ padding: '3px 10px', fontSize: '0.82rem' }}
             >
               {formatTime(timeLeft)}
             </div>
@@ -344,31 +325,15 @@ export default function ImageQuizViewer({
           />
         </div>
 
-        {/* Floating Zoom Controls (Bottom Left) */}
+        {/* Floating Zoom Controls (Desktop only) */}
         {!isModalOpen && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 'calc(20px + env(safe-area-inset-bottom))',
-              left: 20,
-              display: 'flex',
-              gap: 8,
-              background: 'rgba(26, 26, 29, 0.88)',
-              backdropFilter: 'blur(8px)',
-              padding: '6px 10px',
-              borderRadius: 'var(--radius-pill)',
-              border: '1px solid var(--border-color)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-              zIndex: 65,
-              pointerEvents: 'auto',
-            }}
-          >
+          <div className="image-quiz-zoom-controls">
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={handleZoomIn}
               title={t('zoomIn')}
-              style={{ width: 34, height: 34, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
+              style={{ width: 32, height: 32, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
             >
               +
             </button>
@@ -377,7 +342,7 @@ export default function ImageQuizViewer({
               className="btn btn-ghost btn-sm"
               onClick={handleZoomOut}
               title={t('zoomOut')}
-              style={{ width: 34, height: 34, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
+              style={{ width: 32, height: 32, padding: 0, fontWeight: 700, fontSize: '1.2rem' }}
             >
               −
             </button>
@@ -386,49 +351,31 @@ export default function ImageQuizViewer({
               className="btn btn-ghost btn-sm"
               onClick={handleReset}
               title={t('resetZoom')}
-              style={{ padding: '0 10px', fontSize: '0.8rem' }}
+              style={{ padding: '0 8px', fontSize: '0.8rem' }}
             >
               {t('resetZoom')}
             </button>
           </div>
         )}
 
-        {/* Floating Finish Test Button on Left Side */}
+        {/* Floating Side Left: Finish Test (Desktop only) */}
         {!isModalOpen && (
           <button
             type="button"
-            className="btn btn-secondary image-quiz-finish-button"
+            className="btn btn-secondary image-quiz-side-btn image-quiz-side-left"
             onClick={onSubmit}
             disabled={submitting}
-            style={{
-              zIndex: 70,
-              boxShadow: '0 6px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(255, 255, 255, 0.08)',
-              fontWeight: 700,
-              alignItems: 'center',
-              gap: 8,
-              borderRadius: 'var(--radius-pill)',
-              pointerEvents: 'auto',
-            }}
           >
             <span>{submitting ? t('btnProcessing') : t('submitQuiz')}</span>
           </button>
         )}
 
-        {/* Floating Button on Right Side */}
+        {/* Floating Side Right: Questions Button (Desktop only) */}
         {!isModalOpen && (
           <button
             type="button"
-            className="btn btn-primary image-quiz-questions-button"
+            className="btn btn-primary image-quiz-side-btn image-quiz-side-right"
             onClick={() => setIsModalOpen(true)}
-            style={{
-              zIndex: 70,
-              boxShadow: '0 6px 24px rgba(0, 0, 0, 0.5), 0 0 16px var(--accent-glow)',
-              fontWeight: 700,
-              alignItems: 'center',
-              gap: 10,
-              borderRadius: 'var(--radius-pill)',
-              pointerEvents: 'auto',
-            }}
           >
             <span>{t('questionsBtn')}</span>
             <span
@@ -443,6 +390,68 @@ export default function ImageQuizViewer({
               {currentIdx + 1}/{questions.length}
             </span>
           </button>
+        )}
+
+        {/* Ergonomic Mobile Bottom Action Dock (Mobile only <= 768px) */}
+        {!isModalOpen && (
+          <div className="image-quiz-mobile-dock">
+            <div className="image-quiz-mobile-zoom">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={handleZoomOut}
+                title={t('zoomOut')}
+              >
+                −
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={handleReset}
+                style={{ width: 'auto', padding: '0 6px', fontSize: '0.72rem', fontWeight: 600 }}
+                title={t('resetZoom')}
+              >
+                {Math.round(scale * 100)}%
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={handleZoomIn}
+                title={t('zoomIn')}
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-primary image-quiz-mobile-questions-btn"
+              onClick={() => setIsModalOpen(true)}
+            >
+              <span>{t('questionsBtn')}</span>
+              <span
+                style={{
+                  background: 'var(--bg-primary)',
+                  color: 'var(--accent)',
+                  padding: '2px 7px',
+                  borderRadius: 'var(--radius-pill)',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                }}
+              >
+                {currentIdx + 1}/{questions.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary image-quiz-mobile-finish-btn"
+              onClick={onSubmit}
+              disabled={submitting}
+            >
+              {submitting ? t('btnProcessing') : t('submitQuiz')}
+            </button>
+          </div>
         )}
       </div>
 
@@ -580,94 +589,87 @@ export default function ImageQuizViewer({
             </div>
 
             {/* Modal Navigation Footer */}
-            <div
-              style={{
-                padding: '14px 20px',
-                borderTop: '1px solid var(--border-color)',
-                background: 'var(--bg-secondary)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-              }}
-            >
+            <div className="image-quiz-modal-footer">
+              {/* Question dots carousel */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 6,
+                  overflowX: 'auto',
+                  padding: '2px 0 6px',
+                  justifyContent: questions.length <= 12 ? 'center' : 'flex-start',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+              >
+                {questions.map((_, idx) => {
+                  const isAnswered = answers[idx] !== undefined && answers[idx] !== '';
+                  const isCurrent = idx === currentIdx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCurrentIdx(idx)}
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        border: isCurrent
+                          ? '2px solid var(--accent)'
+                          : '1px solid var(--border-color)',
+                        background: isCurrent
+                          ? 'var(--accent)'
+                          : isAnswered
+                          ? 'var(--status-on-bg)'
+                          : 'transparent',
+                        color: isCurrent
+                          ? 'var(--accent-contrast)'
+                          : isAnswered
+                          ? 'var(--status-on)'
+                          : 'var(--text-secondary)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Navigation row: Prev | Peek Image | Next */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
+                  gap: 8,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm"
-                    onClick={onSubmit}
-                    disabled={submitting}
-                    style={{ fontWeight: 700 }}
-                  >
-                    {submitting ? t('btnProcessing') : t('submitQuiz')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => setCurrentIdx((i) => Math.max(i - 1, 0))}
-                    disabled={currentIdx === 0}
-                    style={{ minWidth: 80 }}
-                  >
-                    ← {t('prevQuestion')}
-                  </button>
-                </div>
-
-                {/* Quick question indicator pills */}
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    overflowX: 'auto',
-                    maxWidth: 240,
-                    padding: '2px 0',
-                  }}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setCurrentIdx((i) => Math.max(i - 1, 0))}
+                  disabled={currentIdx === 0}
+                  style={{ minWidth: 80, padding: '7px 12px' }}
                 >
-                  {questions.map((_, idx) => {
-                    const isAnswered = answers[idx] !== undefined && answers[idx] !== '';
-                    const isCurrent = idx === currentIdx;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setCurrentIdx(idx)}
-                        style={{
-                          width: 26,
-                          height: 26,
-                          borderRadius: '50%',
-                          border: isCurrent
-                            ? '2px solid var(--accent)'
-                            : '1px solid var(--border-color)',
-                          background: isCurrent
-                            ? 'var(--accent)'
-                            : isAnswered
-                            ? 'var(--status-on-bg)'
-                            : 'transparent',
-                          color: isCurrent
-                            ? 'var(--accent-contrast)'
-                            : isAnswered
-                            ? 'var(--status-on)'
-                            : 'var(--text-secondary)',
-                          fontSize: '0.72rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: 0,
-                          flexShrink: 0,
-                        }}
-                      >
-                        {idx + 1}
-                      </button>
-                    );
-                  })}
-                </div>
+                  ← {t('prevQuestion')}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '6px 10px' }}
+                  title={t('closeModal')}
+                >
+                  {t('closeModal')}
+                </button>
 
                 <button
                   type="button"
@@ -676,20 +678,34 @@ export default function ImageQuizViewer({
                     setCurrentIdx((i) => Math.min(i + 1, questions.length - 1))
                   }
                   disabled={currentIdx === questions.length - 1}
-                  style={{ minWidth: 90 }}
+                  style={{ minWidth: 80, padding: '7px 12px' }}
                 >
                   {t('nextQuestion')} →
                 </button>
               </div>
 
+              {/* Footer action: Hint + Submit */}
               <div
                 style={{
-                  textAlign: 'center',
-                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: 4,
+                  borderTop: '1px solid color-mix(in srgb, var(--border-color) 60%, transparent)',
+                  fontSize: '0.78rem',
                   color: 'var(--text-muted)',
                 }}
               >
-                {t('swipeOrArrowHint')}
+                <span>{t('swipeOrArrowHint')}</span>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={onSubmit}
+                  disabled={submitting}
+                  style={{ fontWeight: 700, padding: '4px 12px', fontSize: '0.8rem' }}
+                >
+                  {submitting ? t('btnProcessing') : t('submitQuiz')}
+                </button>
               </div>
             </div>
           </div>

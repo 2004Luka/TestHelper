@@ -13,6 +13,60 @@ import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
 
 const MAX_BACKGROUND_IMAGE_BYTES = 5 * 1024 * 1024;
 
+const detectImageMime = (buffer) => {
+  if (!buffer || buffer.length < 12) return null;
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return 'image/png';
+  }
+  // WebP: RIFF .... WEBP
+  if (
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp';
+  }
+  // GIF: GIF87a or GIF89a
+  const gifHeader = buffer.toString('ascii', 0, 6);
+  if (gifHeader === 'GIF87a' || gifHeader === 'GIF89a') {
+    return 'image/gif';
+  }
+  // BMP: BM (0x42, 0x4D)
+  if (buffer[0] === 0x42 && buffer[1] === 0x4d) {
+    return 'image/bmp';
+  }
+  // AVIF: bytes 4-12 contain ftypavif or ftypavis
+  const ftyp = buffer.toString('ascii', 4, 12);
+  if (ftyp.includes('avif') || ftyp.includes('avis')) {
+    return 'image/avif';
+  }
+  // HEIC / HEIF: bytes 4-12 contain ftypheic, ftypmif1, ftypmsf1, etc.
+  if (ftyp.includes('heic') || ftyp.includes('heif') || ftyp.includes('mif1') || ftyp.includes('msf1')) {
+    return 'image/heic';
+  }
+  // TIFF: II*\0 (little endian) or MM\0* (big endian)
+  if (
+    (buffer[0] === 0x49 && buffer[1] === 0x49 && buffer[2] === 0x2a && buffer[3] === 0x00) ||
+    (buffer[0] === 0x4d && buffer[1] === 0x4d && buffer[2] === 0x00 && buffer[3] === 0x2a)
+  ) {
+    return 'image/tiff';
+  }
+  return null;
+};
+
 // POST /api/quizzes — Create quiz from two uploaded Word files (Teacher protected)
 export const createQuiz = async (req, res, next) => {
   try {
@@ -30,7 +84,7 @@ export const createQuiz = async (req, res, next) => {
 
     const isImageQuiz = quizType === 'image' || Boolean(imageFile);
 
-    if (isImageQuiz && !imageFile && !imageBase64) {
+    if (isImageQuiz && !imageFile) {
       return res
         .status(400)
         .json({ success: false, message: 'Background image is required for image tests' });
@@ -71,8 +125,14 @@ export const createQuiz = async (req, res, next) => {
     let storedImage = '';
     if (imageFile) {
       const buffer = await fs.readFile(imageFile.path);
-      const mime = imageFile.mimetype || 'image/jpeg';
-      storedImage = `data:${mime};base64,${buffer.toString('base64')}`;
+      const verifiedMime = detectImageMime(buffer);
+      if (!verifiedMime) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid image file. Upload a genuine PNG, JPEG, or WebP image.',
+        });
+      }
+      storedImage = `data:${verifiedMime};base64,${buffer.toString('base64')}`;
     }
 
     const quiz = await Quiz.create({
@@ -151,21 +211,28 @@ export const getQuizByCode = async (req, res, next) => {
     if (!quiz || quiz.isDeleted) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
-    if (req.student) {
-      const studentTeacherId = req.student.teacher?._id || req.student.teacher;
-      if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
-        return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+
+    const isOwnerTeacher = Boolean(
+      req.teacher?._id && quiz.teacher && req.teacher._id.toString() === quiz.teacher.toString()
+    );
+
+    if (!isOwnerTeacher) {
+      if (req.student) {
+        const studentTeacherId = req.student.teacher?._id || req.student.teacher;
+        if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+          return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+        }
       }
-    }
-    // Check access using priority hierarchy
-    const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
-    if (!accessEvaluation.hasAccess) {
-      return res.status(403).json({
-        success: false,
-        requiresLogin: accessEvaluation.requiresLogin,
-        accessDenied: true,
-        message: accessEvaluation.message,
-      });
+      // Check access using priority hierarchy
+      const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
+      if (!accessEvaluation.hasAccess) {
+        return res.status(403).json({
+          success: false,
+          requiresLogin: accessEvaluation.requiresLogin,
+          accessDenied: true,
+          message: accessEvaluation.message,
+        });
+      }
     }
 
     // Auto-migrate legacy file-based background image into MongoDB Data URI
@@ -225,31 +292,49 @@ export const getQuizImage = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Image not found' });
     }
 
-    if (req.student) {
-      const studentTeacherId = req.student.teacher?._id || req.student.teacher;
-      if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
-        return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
-      }
-    }
+    const isOwnerTeacher = Boolean(
+      req.teacher?._id && quiz.teacher && req.teacher._id.toString() === quiz.teacher.toString()
+    );
 
-    const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
-    if (!accessEvaluation.hasAccess) {
-      return res.status(403).json({
-        success: false,
-        requiresLogin: accessEvaluation.requiresLogin,
-        accessDenied: true,
-        message: accessEvaluation.message,
-      });
+    if (!isOwnerTeacher) {
+      if (req.student) {
+        const studentTeacherId = req.student.teacher?._id || req.student.teacher;
+        if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+          return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
+        }
+      }
+
+      const accessEvaluation = evaluateStudentQuizAccess(quiz, req.student);
+      if (!accessEvaluation.hasAccess) {
+        return res.status(403).json({
+          success: false,
+          requiresLogin: accessEvaluation.requiresLogin,
+          accessDenied: true,
+          message: accessEvaluation.message,
+        });
+      }
     }
 
     if (quiz.backgroundImage.startsWith('data:image/')) {
       const parts = quiz.backgroundImage.split(';base64,');
       const mime = parts[0].replace('data:', '') || 'image/jpeg';
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime) || !parts[1]) {
+      const allowedMimes = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/bmp',
+        'image/avif',
+        'image/heic',
+        'image/heif',
+        'image/tiff',
+      ];
+      if (!allowedMimes.includes(mime) || !parts[1]) {
         return res.status(415).json({ success: false, message: 'Unsupported image format' });
       }
       const buffer = Buffer.from(parts[1], 'base64');
       res.set('Content-Type', mime);
+      res.set('X-Content-Type-Options', 'nosniff');
       res.set('Cache-Control', 'private, no-store');
       return res.send(buffer);
     }
@@ -262,6 +347,8 @@ export const getQuizImage = async (req, res, next) => {
     for (const p of candidatePaths) {
       try {
         await fs.access(p);
+        res.set('X-Content-Type-Options', 'nosniff');
+        res.set('Cache-Control', 'private, no-store');
         return res.sendFile(p);
       } catch {}
     }

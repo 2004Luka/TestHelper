@@ -18,11 +18,16 @@ const upload = multer({
   dest: 'uploads/',
   limits: { fileSize: 10 * 1024 * 1024, files: 3, fields: 10, fieldSize: 64 * 1024 },
   fileFilter: (req, file, callback) => {
-    if (
-      file.fieldname === 'imageFile' &&
-      !['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)
-    ) {
-      return callback(null, false);
+    if (file.fieldname === 'imageFile') {
+      const mime = (file.mimetype || '').toLowerCase();
+      const isImageMime = mime.startsWith('image/');
+      const hasImageExt = /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif|tiff?)$/i.test(
+        file.originalname || ''
+      );
+
+      if (!isImageMime && !hasImageExt) {
+        return callback(new Error('Please upload a valid image file (PNG, JPG, WebP, GIF, etc.).'));
+      }
     }
     callback(null, true);
   },

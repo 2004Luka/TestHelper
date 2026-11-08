@@ -86,11 +86,9 @@ export default function CreateQuiz() {
           setCompressedImage(comp);
         }
         if (comp?.blob) {
-          formData.append(
-            'imageFile',
-            comp.blob,
-            imageFile.name.replace(/\.[^.]+$/, '.webp')
-          );
+          const ext = comp.format === 'image/jpeg' ? '.jpg' : '.webp';
+          const filename = (imageFile.name || 'image').replace(/\.[^.]+$/, ext);
+          formData.append('imageFile', comp.blob, filename);
         } else if (imageFile) {
           formData.append('imageFile', imageFile);
         }
@@ -184,36 +182,24 @@ export default function CreateQuiz() {
       </p>
 
       {/* Mode Switcher Tabs */}
-      <div
-        style={{
-          display: 'inline-flex',
-          gap: 6,
-          background: 'var(--bg-secondary)',
-          padding: 4,
-          borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--border-color)',
-          marginBottom: 24,
-        }}
-      >
+      <div className="create-quiz-tab-switcher">
         <button
           type="button"
-          className={`btn btn-sm ${quizMode === 'standard' ? 'btn-primary' : 'btn-ghost'}`}
+          className={`btn ${quizMode === 'standard' ? 'btn-primary' : 'btn-ghost'} create-quiz-tab-btn`}
           onClick={() => {
             setQuizMode('standard');
             setError('');
           }}
-          style={{ padding: '8px 18px', fontWeight: 600 }}
         >
           {t('tabStandardQuiz')}
         </button>
         <button
           type="button"
-          className={`btn btn-sm ${quizMode === 'image' ? 'btn-primary' : 'btn-ghost'}`}
+          className={`btn ${quizMode === 'image' ? 'btn-primary' : 'btn-ghost'} create-quiz-tab-btn`}
           onClick={() => {
             setQuizMode('image');
             setError('');
           }}
-          style={{ padding: '8px 18px', fontWeight: 600 }}
         >
           {t('tabImageQuiz')}
         </button>
@@ -233,58 +219,70 @@ export default function CreateQuiz() {
 
       {/* Image Upload Zone (Only in Image Quiz Mode) */}
       {quizMode === 'image' && (
-        <div className="form-group" style={{ marginBottom: 24 }}>
-          <div className="form-label">{t('imageFileLabel')}</div>
+        <div className="image-quiz-setup-card">
+          <div className="image-quiz-setup-header">
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                {t('imageFileLabel')}
+              </div>
+              <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                {t('imageFileSubLabel')} — PNG, JPG, WebP, GIF, BMP, HEIC
+              </p>
+            </div>
+            <span className="badge badge-accent">{t('imageQuizBadge')}</span>
+          </div>
+
           <FileUpload
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.bmp,.avif,.heic,.heif"
             label={t('imageFileSubLabel')}
             file={imageFile}
             onFile={handleImageSelect}
           />
+
           {compressing && (
-            <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--accent)' }}>
-              Optimizing image for database & student devices...
+            <div style={{ marginTop: 10, fontSize: '0.85rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+              <span>Optimizing image for database and student devices...</span>
             </div>
           )}
+
           {imageFile && (
-            <div
-              style={{
-                marginTop: 12,
-                borderRadius: 'var(--radius-md)',
-                overflow: 'hidden',
-                border: '1px solid var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(0, 0, 0, 0.3)',
-                padding: 12,
-                gap: 8,
-              }}
-            >
-              <img
-                src={compressedImage?.dataUrl || imagePreviewUrl}
-                alt="Selected Background Preview"
-                style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }}
-              />
-              {compressedImage && (
-                <div
-                  style={{
-                    fontSize: '0.78rem',
-                    color: 'var(--text-secondary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                  }}
-                >
-                  <span className="badge badge-success">
-                    {Math.round(compressedImage.compressedSize / 1024)} KB
+            <div className="image-quiz-preview-container">
+              <div className="image-quiz-preview-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {imageFile.name}
                   </span>
-                  <span>
-                    Original: {Math.round(compressedImage.originalSize / 1024)} KB (reduced {compressedImage.compressionRatio}%)
-                  </span>
+                  {compressedImage && (
+                    <span className="badge badge-success" style={{ fontSize: '0.72rem' }}>
+                      {Math.round(compressedImage.compressedSize / 1024)} KB
+                    </span>
+                  )}
                 </div>
-              )}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {compressedImage?.compressionRatio > 0 && (
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      reduced {compressedImage.compressionRatio}%
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => handleImageSelect(null)}
+                    style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div className="image-quiz-preview-viewport">
+                <img
+                  src={compressedImage?.dataUrl || imagePreviewUrl}
+                  alt="Background Preview"
+                />
+              </div>
             </div>
           )}
         </div>
