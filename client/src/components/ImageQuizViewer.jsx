@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function ImageQuizViewer({
@@ -65,7 +65,7 @@ export default function ImageQuizViewer({
   }, []);
 
   // Mouse wheel zoom on canvas
-  const handleWheel = (e) => {
+  const handleWheel = useCallback((e) => {
     if (isModalOpen) return;
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
@@ -83,7 +83,15 @@ export default function ImageQuizViewer({
       y: mouseY - (mouseY - prev.y) * ratio,
     }));
     setScale(newScale);
-  };
+  }, [isModalOpen, scale]);
+
+  useEffect(() => {
+    const viewport = containerRef.current;
+    if (!viewport) return;
+
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    return () => viewport.removeEventListener('wheel', handleWheel);
+  }, [handleWheel]);
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {
@@ -150,7 +158,6 @@ export default function ImageQuizViewer({
         y: e.touches[0].clientY - dragStartRef.current.y,
       });
     } else if (e.touches.length === 2 && touchStateRef.current.initialDist) {
-      if (e.cancelable) e.preventDefault();
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -269,7 +276,6 @@ export default function ImageQuizViewer({
       <div
         ref={containerRef}
         className="image-viewport"
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
