@@ -19,6 +19,9 @@ const studentSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       select: false,
     },
+    passwordResetTokenHash: { type: String, select: false, index: true },
+    passwordResetExpires: { type: Date, select: false },
+    sessionVersion: { type: Number, default: 0 },
     teacher: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Teacher',

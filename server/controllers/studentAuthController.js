@@ -1,5 +1,8 @@
+import { createHash, randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import { z } from 'zod';
 import Student from '../models/Student.js';
 import Teacher from '../models/Teacher.js';
 import Class from '../models/Class.js';
@@ -17,16 +20,25 @@ const getCookieOptions = () => ({
   path: '/',
 });
 
+const studentPasswordResetSchema = z.object({
+  token: z.string().length(64).regex(/^[a-f0-9]{64}$/i),
+  password: studentRegisterSchema.shape.password,
+});
+
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const generateStudentToken = (id) => {
-  return jwt.sign({ id, role: 'student' }, getJwtSecret(), { ...jwtOptions, expiresIn: '7d' });
+const generateStudentToken = (student) => {
+  return jwt.sign(
+    { id: student._id, role: 'student', sessionVersion: student.sessionVersion || 0 },
+    getJwtSecret(),
+    { ...jwtOptions, expiresIn: '7d' }
+  );
 };
 
 const sendStudentTokenResponse = (student, statusCode, res, message = 'Success') => {
-  const token = generateStudentToken(student._id);
+  const token = generateStudentToken(student);
 
   res
     .status(statusCode)
@@ -169,6 +181,74 @@ export const loginStudent = async (req, res, next) => {
     }
 
     sendStudentTokenResponse(student, 200, res, 'Login successful');
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/students/teacher/:studentId/password-reset — Create a short-lived reset link
+export const createStudentPasswordResetLink = async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.studentId)) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    const student = await Student.findOneAndUpdate(
+      {
+        _id: req.params.studentId,
+        teacher: req.teacher._id,
+      },
+      {
+        $set: {
+          passwordResetTokenHash: createHash('sha256').update(token).digest('hex'),
+          passwordResetExpires: expiresAt,
+        },
+      }
+    );
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: { token, expiresAt },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/students/password-reset — Consume a reset token and update the password
+export const resetStudentPassword = async (req, res, next) => {
+  try {
+    const parsed = studentPasswordResetSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ success: false, message: 'Password reset link is invalid or expired' });
+    }
+
+    const tokenHash = createHash('sha256').update(parsed.data.token).digest('hex');
+    const passwordHash = await bcrypt.hash(parsed.data.password, 12);
+    const student = await Student.findOneAndUpdate(
+      {
+        passwordResetTokenHash: tokenHash,
+        passwordResetExpires: { $gt: new Date() },
+      },
+      {
+        $set: { password: passwordHash },
+        $unset: { passwordResetTokenHash: 1, passwordResetExpires: 1 },
+        $inc: { sessionVersion: 1 },
+      }
+    );
+
+    if (!student) {
+      return res.status(400).json({ success: false, message: 'Password reset link is invalid or expired' });
+    }
+
+    res
+      .clearCookie('studentToken', getCookieOptions())
+      .json({ success: true, message: 'Password updated. Please sign in.' });
   } catch (err) {
     next(err);
   }

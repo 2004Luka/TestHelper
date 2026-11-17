@@ -61,6 +61,9 @@ export const protectStudent = async (req, res, next) => {
     if (!student) {
       return res.status(401).json({ message: 'Student account not found' });
     }
+    if (Number(decoded.sessionVersion ?? 0) !== Number(student.sessionVersion ?? 0)) {
+      return res.status(401).json({ message: 'Student session has expired' });
+    }
 
     req.student = student;
     next();
@@ -86,7 +89,7 @@ export const optionalAuth = async (req, res, next) => {
             .select('-password')
             .populate('teacher', 'name subject')
             .populate('class', 'name code');
-          if (student) {
+          if (student && Number(decoded.sessionVersion ?? 0) === Number(student.sessionVersion ?? 0)) {
             req.student = student;
             break;
           }

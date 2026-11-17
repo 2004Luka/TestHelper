@@ -25,6 +25,10 @@ export default function TeacherStudents() {
   // Copy feedback
   const [copiedCode, setCopiedCode] = useState(null);
   const [copiedRegLink, setCopiedRegLink] = useState(false);
+  const [resetLinkModal, setResetLinkModal] = useState(null);
+  const [resettingStudentId, setResettingStudentId] = useState(null);
+  const [resetLinkError, setResetLinkError] = useState('');
+  const [resetLinkCopied, setResetLinkCopied] = useState(false);
 
   const loadData = async () => {
     try {
@@ -109,6 +113,45 @@ export default function TeacherStudents() {
     } catch (err) {
       alert(err.message || 'Failed to remove student');
     }
+  };
+
+  const handleGeneratePasswordResetLink = async (student) => {
+    setResettingStudentId(student._id);
+    setResetLinkError('');
+    setResetLinkCopied(false);
+    setResetLinkModal({ studentName: student.name, url: '' });
+    try {
+      const res = await api.post(`/students/teacher/${student._id}/password-reset`, {});
+      const resetUrl = new URL('/login', window.location.origin);
+      resetUrl.hash = `student-reset=${res.data.token}`;
+      setResetLinkModal({ studentName: student.name, url: resetUrl.toString() });
+    } catch (err) {
+      setResetLinkError(err.message || 'Failed to create password reset link.');
+    } finally {
+      setResettingStudentId(null);
+    }
+  };
+
+  const handleCopyPasswordResetLink = async () => {
+    if (!resetLinkModal?.url) return;
+    try {
+      await navigator.clipboard.writeText(resetLinkModal.url);
+      setResetLinkCopied(true);
+    } catch {
+      const input = document.createElement('input');
+      input.value = resetLinkModal.url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      setResetLinkCopied(true);
+    }
+  };
+
+  const closePasswordResetLink = () => {
+    setResetLinkModal(null);
+    setResetLinkError('');
+    setResetLinkCopied(false);
   };
 
   // Filtered classes & students
@@ -425,19 +468,28 @@ export default function TeacherStudents() {
                           </select>
                         </td>
                         <td style={{ textAlign: 'right' }}>
-                          <button
-                            className="btn-icon-delete"
-                            onClick={() => handleRemoveStudent(std._id, std.name)}
-                            title="Remove Student"
-                            aria-label="Remove Student"
-                          >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                              <line x1="10" y1="11" x2="10" y2="17" />
-                              <line x1="14" y1="11" x2="14" y2="17" />
-                            </svg>
-                          </button>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => handleGeneratePasswordResetLink(std)}
+                              disabled={Boolean(resettingStudentId)}
+                            >
+                              {t('resetStudentPasswordBtn')}
+                            </button>
+                            <button
+                              className="btn-icon-delete"
+                              onClick={() => handleRemoveStudent(std._id, std.name)}
+                              title="Remove Student"
+                              aria-label="Remove Student"
+                            >
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <line x1="10" y1="11" x2="10" y2="17" />
+                                <line x1="14" y1="11" x2="14" y2="17" />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -459,19 +511,28 @@ export default function TeacherStudents() {
                           <div className="student-mobile-username">@{std.username}</div>
                         </div>
                       </div>
-                      <button
-                        className="btn-icon-delete"
-                        onClick={() => handleRemoveStudent(std._id, std.name)}
-                        title="Remove Student"
-                        aria-label="Remove Student"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => handleGeneratePasswordResetLink(std)}
+                          disabled={Boolean(resettingStudentId)}
+                        >
+                          {t('resetStudentPasswordBtn')}
+                        </button>
+                        <button
+                          className="btn-icon-delete"
+                          onClick={() => handleRemoveStudent(std._id, std.name)}
+                          title="Remove Student"
+                          aria-label="Remove Student"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     <div className="student-mobile-card-controls">
@@ -590,6 +651,52 @@ export default function TeacherStudents() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {resetLinkModal && (
+        <div className="modal-backdrop" onClick={closePasswordResetLink}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="student-reset-link-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2 id="student-reset-link-title">{t('studentResetLinkTitle')}</h2>
+              <button className="modal-close" onClick={closePasswordResetLink} aria-label={t('closeModal')}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>{t('studentResetLinkHelp')}</p>
+              <p><strong>{t('studentResetLinkRecipient')} {resetLinkModal.studentName}</strong></p>
+              {resettingStudentId && <p>{t('btnProcessing')}</p>}
+              {resetLinkError && <div className="error-message" role="alert">{resetLinkError}</div>}
+              {resetLinkModal.url && (
+                <div className="share-link-box">
+                  <input
+                    value={resetLinkModal.url}
+                    readOnly
+                    onClick={(e) => e.target.select()}
+                    aria-label={t('studentResetLinkTitle')}
+                  />
+                  <button className="btn btn-primary btn-sm" onClick={handleCopyPasswordResetLink}>
+                    {resetLinkCopied ? t('btnCopied') : t('btnCopy')}
+                  </button>
+                </div>
+              )}
+              <div className="modal-footer" style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-secondary" onClick={closePasswordResetLink}>
+                  {t('closeModal')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

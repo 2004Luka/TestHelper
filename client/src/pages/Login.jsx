@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, Link, useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -19,8 +19,23 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resetToken, setResetToken] = useState(() => (
+    new URLSearchParams(window.location.hash.slice(1)).get('student-reset') || ''
+  ));
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const successMessage = location.state?.message || '';
+
+  useEffect(() => {
+    if (resetToken && window.location.hash) {
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `${window.location.pathname}${window.location.search}`
+      );
+    }
+  }, [resetToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,6 +71,88 @@ export default function Login() {
       setSubmitting(false);
     }
   };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError(t('passwordsDoNotMatch'));
+      return;
+    }
+
+    try {
+      setError('');
+      setSubmitting(true);
+      await api.post('/students/password-reset', { token: resetToken, password: newPassword });
+      setResetToken('');
+      navigate('/login?role=student', {
+        replace: true,
+        state: { message: t('studentPasswordResetSuccess') },
+      });
+    } catch (err) {
+      setError(err.message || 'Password reset failed. Please request a new link.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (resetToken) {
+    return (
+      <div className="auth-container">
+        <div className="card auth-card">
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <Logo size="lg" />
+          </div>
+          <h2>{t('studentPasswordResetTitle')}</h2>
+          <p className="auth-subtitle">{t('studentPasswordResetSubtitle')}</p>
+
+          {error && <div className="inline-alert inline-alert-error">{error}</div>}
+
+          <form onSubmit={handlePasswordReset}>
+            <div className="form-group-inline">
+              <label>{t('newPasswordLabel')}</label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                minLength={8}
+                maxLength={100}
+                required
+              />
+            </div>
+            <div className="form-group-inline">
+              <label>{t('confirmPasswordLabel')}</label>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                minLength={8}
+                maxLength={100}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary auth-submit" disabled={submitting}>
+              {submitting ? t('btnProcessing') : t('saveChangesBtn')}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                setResetToken('');
+                navigate('/login?role=student', { replace: true });
+              }}
+            >
+              {t('studentLoginTitle')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
