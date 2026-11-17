@@ -387,6 +387,11 @@ export default function Dashboard() {
 
               {/* Responsive Action Buttons */}
               <div className="dash-quiz-actions">
+                {tab === 'active' && (
+                  <Link to={`/dashboard/${q.shareCode}?edit=1`} className="btn btn-primary btn-sm">
+                    {t('editQuizBtn')}
+                  </Link>
+                )}
                 <Link to={`/dashboard/${q.shareCode}`} className="btn btn-secondary btn-sm">
                   {t('studentResults')} ({q.submissionCount})
                 </Link>

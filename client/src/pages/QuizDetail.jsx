@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import Discussion from '../components/Discussion';
+import QuizPreview from '../components/QuizPreview';
 import QuizAccessControl from '../components/QuizAccessControl';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -12,6 +13,11 @@ export default function QuizDetail() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [editingQuestions, setEditingQuestions] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedQuestions, setEditedQuestions] = useState([]);
+  const [savingQuestions, setSavingQuestions] = useState(false);
+  const [editError, setEditError] = useState('');
 
   // Mistakes review state
   const [selectedSubmission, setSelectedSubmission] = useState(null);
@@ -29,7 +35,23 @@ export default function QuizDetail() {
           api.get(`/quizzes/${shareCode}/full`),
           api.get(`/submissions/${shareCode}`),
         ]);
-        setQuiz(quizRes.data);
+        const loadedQuiz = quizRes.data;
+        setQuiz(loadedQuiz);
+        if (new URLSearchParams(window.location.search).get('edit') === '1' && !loadedQuiz.isDeleted) {
+          setEditedTitle(loadedQuiz.title);
+          setEditedQuestions(loadedQuiz.questions.map((question) => ({
+            ...question,
+            options: [...(question.options || [])],
+          })));
+          setEditingQuestions(true);
+          const currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.delete('edit');
+          window.history.replaceState(
+            window.history.state,
+            '',
+            `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`
+          );
+        }
         setSubmissions(subRes.data);
       } catch {
         // silent
@@ -62,6 +84,48 @@ export default function QuizDetail() {
       const res = await api.patch(`/quizzes/${shareCode}/toggle`);
       setQuiz(res.data);
     } catch {}
+  };
+
+  const startEditingQuestions = () => {
+    setEditedTitle(quiz.title);
+    setEditedQuestions(quiz.questions.map((question) => ({
+      ...question,
+      options: [...(question.options || [])],
+    })));
+    setEditingQuestions(true);
+    setEditError('');
+  };
+
+  const handleQuestionChange = (index, question) => {
+    setEditedQuestions((previous) => previous.map((item, itemIndex) => (
+      itemIndex === index ? question : item
+    )));
+  };
+
+  const handleSaveQuestions = async () => {
+    setSavingQuestions(true);
+    setEditError('');
+    try {
+      const res = await api.patch(`/quizzes/${shareCode}`, {
+        title: editedTitle,
+        questions: editedQuestions,
+      });
+      setQuiz(res.data);
+      setEditedTitle(res.data.title);
+      setEditingQuestions(false);
+      setEditedQuestions([]);
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingQuestions(false);
+    }
+  };
+
+  const cancelEditingQuestions = () => {
+    setEditingQuestions(false);
+    setEditedTitle('');
+    setEditedQuestions([]);
+    setEditError('');
   };
 
   const handleRestore = async () => {
@@ -196,7 +260,17 @@ export default function QuizDetail() {
 
       <div className="page-header" style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 className="page-title">{quiz.title}</h1>
+          <h1 className="page-title">
+            {editingQuestions ? (
+              <input
+                className="form-input"
+                aria-label={t('quizTitleLabel')}
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                style={{ fontSize: 'inherit', fontWeight: 'inherit' }}
+              />
+            ) : quiz.title}
+          </h1>
           <div className="quiz-meta" style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 6, fontSize: '0.88rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
             <span>{totalPossibleQuestions} {t('questionsText')}</span>
             <span>·</span>
@@ -212,6 +286,24 @@ export default function QuizDetail() {
           </div>
         </div>
         <div className="page-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {editingQuestions ? (
+            <>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleSaveQuestions}
+                disabled={savingQuestions}
+              >
+                {savingQuestions ? t('btnProcessing') : t('saveChangesBtn')}
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={cancelEditingQuestions} disabled={savingQuestions}>
+                {t('cancelEditBtn')}
+              </button>
+            </>
+          ) : !quiz.isDeleted && (
+            <button className="btn btn-primary btn-sm" onClick={startEditingQuestions}>
+              {t('editQuizBtn')}
+            </button>
+          )}
           <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
             {copied ? t('btnCopied') : t('btnCopy')}
           </button>
@@ -229,6 +321,18 @@ export default function QuizDetail() {
           </button>
         </div>
       </div>
+
+      {editingQuestions && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <div className="card-title">{t('editQuizBtn')}</div>
+          {editError && <div className="alert alert-error" role="alert">{editError}</div>}
+          <QuizPreview
+            questions={editedQuestions}
+            editable
+            onQuestionChange={handleQuestionChange}
+          />
+        </div>
+      )}
 
       <div className="share-link-box">
         <input

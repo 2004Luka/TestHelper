@@ -19,7 +19,11 @@ const submitQuizSchema = z.object({
         selectedAnswer: z.string().max(1000).optional().default(''),
       })
     )
-    .max(500),
+    .max(500)
+    .refine(
+      (answers) => new Set(answers.map((answer) => answer.questionIndex)).size === answers.length,
+      'A question can only be answered once'
+    ),
 });
 
 // POST /api/submissions — Student submits quiz answers, gets instant grading (Public)

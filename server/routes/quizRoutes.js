@@ -7,6 +7,7 @@ import {
   getQuizByCode,
   getQuizImage,
   getFullQuiz,
+  updateQuiz,
   toggleQuiz,
   deleteQuiz,
   restoreQuiz,
@@ -36,6 +37,7 @@ const upload = multer({
 // Protected teacher routes (listed first so specific paths like /:shareCode/full are matched correctly)
 router.get('/', protect, getAllQuizzes);
 router.get('/:shareCode/full', protect, getFullQuiz);
+router.patch('/:shareCode', protect, updateQuiz);
 router.patch('/:shareCode/toggle', protect, toggleQuiz);
 router.patch('/:shareCode/restore', protect, restoreQuiz);
 router.delete('/:shareCode', protect, deleteQuiz);

@@ -10,7 +10,7 @@ export default function TakeQuiz() {
   const { shareCode } = useParams();
   const navigate = useNavigate();
   const { lang, t } = useLanguage();
-  const { student } = useAuth();
+  const { student, loading: authLoading } = useAuth();
   const [quiz, setQuiz] = useState(null);
   const [studentName, setStudentName] = useState(() => student?.name || '');
   const [started, setStarted] = useState(false);
@@ -73,6 +73,18 @@ export default function TakeQuiz() {
       setStudentName(student.name);
     }
   }, [student, studentName]);
+
+  useEffect(() => {
+    const fullName = student?.name?.trim();
+    if (authLoading || !fullName || !quiz || started || result) return;
+
+    setStudentName(fullName);
+    setDisplayQuestions(quiz.questions || []);
+    setStarted(true);
+    if (quiz.settings?.timeLimit > 0) {
+      setTimeLeft(quiz.settings.timeLimit * 60);
+    }
+  }, [authLoading, quiz, result, started, student]);
 
   // Start quiz
   const handleStart = () => {
@@ -140,7 +152,7 @@ export default function TakeQuiz() {
     setAnswers((prev) => ({ ...prev, [questionIndex]: answer }));
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="page">
         <div className="loading">
@@ -182,6 +194,15 @@ export default function TakeQuiz() {
   if (result) {
     return (
       <div className="page">
+        {student && (
+          <Link
+            to="/student/portal"
+            className="btn btn-secondary btn-sm quiz-back-button"
+            style={{ marginBottom: 16 }}
+          >
+            {t('back')}
+          </Link>
+        )}
         <h1 className="page-title">{t('scoreText')}</h1>
         <p className="page-subtitle">
           {result.studentName} — {t('attemptsCount')}{result.attemptNumber}

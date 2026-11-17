@@ -379,6 +379,79 @@ export const getFullQuiz = async (req, res, next) => {
   }
 };
 
+// PATCH /api/quizzes/:shareCode — Update quiz title, questions, and answers (Teacher protected)
+export const updateQuiz = async (req, res, next) => {
+  try {
+    if (!req.teacher?._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    const quiz = await Quiz.findOne({
+      shareCode: req.params.shareCode,
+      teacher: req.teacher._id,
+      isDeleted: { $ne: true },
+    });
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: 'Quiz not found or unauthorized' });
+    }
+
+    const title = req.body?.title === undefined
+      ? quiz.title
+      : (typeof req.body.title === 'string' ? req.body.title.trim() : '');
+    if (!title) {
+      return res.status(400).json({ success: false, message: 'Quiz title is required' });
+    }
+
+    if (!Array.isArray(req.body?.questions) || req.body.questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one question is required' });
+    }
+
+    const allowedTypes = ['mcq', 'truefalse', 'fillin'];
+    const questions = [];
+    for (let index = 0; index < req.body.questions.length; index += 1) {
+      const question = req.body.questions[index];
+      const questionText = typeof question?.questionText === 'string' ? question.questionText.trim() : '';
+      const type = allowedTypes.includes(question?.type) ? question.type : '';
+      const options = Array.isArray(question?.options)
+        ? question.options.map((option) => (typeof option === 'string' ? option.trim() : ''))
+        : [];
+      const correctAnswer = typeof question?.correctAnswer === 'string'
+        ? question.correctAnswer.trim()
+        : '';
+
+      if (!questionText || !type) {
+        return res.status(400).json({ success: false, message: `Question ${index + 1} is incomplete` });
+      }
+      if (options.some((option) => !option)) {
+        return res.status(400).json({ success: false, message: `Question ${index + 1} has an empty answer option` });
+      }
+      if (!correctAnswer || (options.length > 0 && !options.includes(correctAnswer))) {
+        return res.status(400).json({ success: false, message: `Choose a correct answer for question ${index + 1}` });
+      }
+
+      questions.push({
+        questionNumber: Number.isInteger(question.questionNumber) && question.questionNumber > 0
+          ? question.questionNumber
+          : index + 1,
+        questionText,
+        type,
+        options,
+        correctAnswer,
+      });
+    }
+
+    quiz.title = title;
+    quiz.questions = questions;
+    await quiz.save();
+
+    const responseQuiz = quiz.toObject();
+    delete responseQuiz.backgroundImage;
+    res.json({ success: true, data: responseQuiz });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // PATCH /api/quizzes/:shareCode/toggle — Enable/disable quiz link (Teacher protected)
 export const toggleQuiz = async (req, res, next) => {
   try {

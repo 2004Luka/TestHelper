@@ -21,6 +21,11 @@ export default function CreateQuiz() {
     showScoreImmediately: true,
   });
   const [quiz, setQuiz] = useState(null);
+  const [editingQuestions, setEditingQuestions] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedQuestions, setEditedQuestions] = useState([]);
+  const [savingQuestions, setSavingQuestions] = useState(false);
+  const [editError, setEditError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -106,6 +111,41 @@ export default function CreateQuiz() {
     setLoading(false);
   };
 
+  const startEditingQuestions = () => {
+    setEditedTitle(quiz.title);
+    setEditedQuestions(quiz.questions.map((question) => ({
+      ...question,
+      options: [...(question.options || [])],
+    })));
+    setEditingQuestions(true);
+    setEditError('');
+  };
+
+  const handleQuestionChange = (index, question) => {
+    setEditedQuestions((previous) => previous.map((item, itemIndex) => (
+      itemIndex === index ? question : item
+    )));
+  };
+
+  const handleSaveQuestions = async () => {
+    setSavingQuestions(true);
+    setEditError('');
+    try {
+      const res = await api.patch(`/quizzes/${quiz.shareCode}`, {
+        title: editedTitle,
+        questions: editedQuestions,
+      });
+      setQuiz(res.data);
+      setEditedTitle(res.data.title);
+      setEditingQuestions(false);
+      setEditedQuestions([]);
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingQuestions(false);
+    }
+  };
+
   const shareUrl = quiz
     ? `${window.location.origin}/quiz/${quiz.shareCode}`
     : '';
@@ -134,7 +174,16 @@ export default function CreateQuiz() {
         <p className="page-subtitle">{t('createdSub')}</p>
 
         <div className="card">
-          <div className="card-title">{quiz.title}</div>
+          {editingQuestions ? (
+            <input
+              className="form-input"
+              aria-label={t('quizTitleLabel')}
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+            />
+          ) : (
+            <div className="card-title">{quiz.title}</div>
+          )}
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: 4 }}>
             {quiz.questions.length} {t('questionsText')} · {t('shareCode')}: {quiz.shareCode}
           </div>
@@ -157,6 +206,10 @@ export default function CreateQuiz() {
                 setCompressedImage(null);
                 setTestFile(null);
                 setAnswerFile(null);
+                setEditingQuestions(false);
+                setEditedTitle('');
+                setEditedQuestions([]);
+                setEditError('');
                 setTitle('');
                 setError('');
               }}
@@ -169,7 +222,43 @@ export default function CreateQuiz() {
           </div>
         </div>
 
-        <QuizPreview questions={quiz.questions} />
+        <div className="btn-group" style={{ marginTop: 24 }}>
+          {editingQuestions ? (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSaveQuestions}
+                disabled={savingQuestions}
+              >
+                {savingQuestions ? t('btnProcessing') : t('saveChangesBtn')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setEditingQuestions(false);
+                  setEditedTitle('');
+                  setEditedQuestions([]);
+                  setEditError('');
+                }}
+                disabled={savingQuestions}
+              >
+                {t('cancelEditBtn')}
+              </button>
+            </>
+          ) : (
+            <button type="button" className="btn btn-secondary" onClick={startEditingQuestions}>
+              {t('editQuizBtn')}
+            </button>
+          )}
+        </div>
+        {editError && <div className="alert alert-error" role="alert">{editError}</div>}
+        <QuizPreview
+          questions={editingQuestions ? editedQuestions : quiz.questions}
+          editable={editingQuestions}
+          onQuestionChange={handleQuestionChange}
+        />
       </div>
     );
   }
