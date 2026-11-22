@@ -16,6 +16,41 @@
  *    - Closed if quiz.isActive is false.
  */
 
+const getRefId = (value) => value?._id?.toString() || value?.toString() || null;
+
+export const getStudentTeacherIds = (student) => {
+  const refs = [...(Array.isArray(student?.teachers) ? student.teachers : []), student?.teacher];
+  const unique = new Map();
+  refs.filter(Boolean).forEach((ref) => {
+    const key = getRefId(ref);
+    if (key && !unique.has(key)) unique.set(key, ref?._id || ref);
+  });
+  return [...unique.values()];
+};
+
+export const studentHasTeacher = (student, teacherId) => {
+  const targetId = getRefId(teacherId);
+  return Boolean(targetId && getStudentTeacherIds(student).some((id) => getRefId(id) === targetId));
+};
+
+export const getStudentClassForTeacher = (student, teacherId) => {
+  const targetId = getRefId(teacherId);
+  const assignment = student?.teacherClasses?.find((item) => getRefId(item.teacher) === targetId);
+  if (assignment) return assignment.class || null;
+  return getRefId(student?.teacher) === targetId ? student?.class || null : null;
+};
+
+export const teacherStudentFilter = (teacherId) => ({
+  $or: [{ teacher: teacherId }, { teachers: teacherId }],
+});
+
+export const teacherClassStudentFilter = (teacherId, classId) => ({
+  $or: [
+    { teacher: teacherId, class: classId },
+    { teacherClasses: { $elemMatch: { teacher: teacherId, class: classId } } },
+  ],
+});
+
 export const evaluateStudentQuizAccess = (quiz, student) => {
   if (!quiz || quiz.isDeleted) {
     return {
@@ -27,7 +62,7 @@ export const evaluateStudentQuizAccess = (quiz, student) => {
   }
 
   const studentIdStr = student?._id?.toString() || null;
-  const studentClassIdStr = student?.class?._id?.toString() || student?.class?.toString() || null;
+  const studentClassIdStr = getRefId(getStudentClassForTeacher(student, quiz.teacher));
 
   // Level 1: Individual Student Overrides (Explicit teacher settings for this individual)
   if (studentIdStr) {

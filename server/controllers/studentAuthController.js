@@ -8,7 +8,12 @@ import Teacher from '../models/Teacher.js';
 import Class from '../models/Class.js';
 import Quiz from '../models/Quiz.js';
 import Submission from '../models/Submission.js';
-import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
+import TutorWorkspace from '../models/TutorWorkspace.js';
+import {
+  evaluateStudentQuizAccess,
+  getStudentTeacherIds,
+  teacherStudentFilter,
+} from '../utils/quizAccess.js';
 import { studentRegisterSchema, studentLoginSchema } from '../utils/authValidators.js';
 
 const getJwtSecret = () => process.env.JWT_SECRET;
@@ -39,6 +44,11 @@ const generateStudentToken = (student) => {
 
 const sendStudentTokenResponse = (student, statusCode, res, message = 'Success') => {
   const token = generateStudentToken(student);
+  const teachers = [...new Map(
+    [...(student.teachers || []), student.teacher]
+      .filter(Boolean)
+      .map((teacher) => [String(teacher?._id || teacher), teacher])
+  ).values()];
 
   res
     .status(statusCode)
@@ -52,7 +62,9 @@ const sendStudentTokenResponse = (student, statusCode, res, message = 'Success')
         name: student.name,
         username: student.username,
         teacher: student.teacher,
+        teachers,
         class: student.class,
+        teacherClasses: student.teacherClasses || [],
       },
     });
 };
@@ -113,20 +125,21 @@ export const registerStudent = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'A student with this username already exists' });
     }
 
-    // Verify teacher exists
-    const teacher = await Teacher.findById(teacherId);
-    if (!teacher) {
+    let teacher = teacherId ? await Teacher.findById(teacherId) : null;
+    if (teacherId && !teacher) {
       return res.status(404).json({ success: false, message: 'Selected teacher does not exist' });
     }
 
-    // Resolve class if provided by classId or classCode
-    let resolvedClassId = null;
-    if (classId) {
-      const cls = await Class.findOne({ _id: classId, teacher: teacherId });
-      if (cls) resolvedClassId = cls._id;
-    } else if (classCode) {
-      const cls = await Class.findOne({ code: classCode.trim().toUpperCase(), teacher: teacherId });
-      if (cls) resolvedClassId = cls._id;
+    let resolvedClass = null;
+    if (classId || classCode) {
+      const classFilter = classId
+        ? { _id: classId }
+        : { code: classCode.trim().toUpperCase() };
+      if (teacher) classFilter.teacher = teacher._id;
+      resolvedClass = await Class.findOne(classFilter).populate('teacher', 'name subject');
+      if (resolvedClass && !teacher) {
+        teacher = resolvedClass.teacher;
+      }
     }
 
     const salt = await bcrypt.genSalt(12);
@@ -136,16 +149,67 @@ export const registerStudent = async (req, res, next) => {
       name,
       username,
       password: hashedPassword,
-      teacher: teacher._id,
-      class: resolvedClassId,
+      teacher: teacher?._id || null,
+      teachers: teacher ? [teacher._id] : [],
+      teacherClasses: resolvedClass && teacher ? [{ teacher: teacher._id, class: resolvedClass._id }] : [],
+      class: resolvedClass?._id || null,
     });
 
     const populatedStudent = await Student.findById(student._id)
       .select('-password')
       .populate('teacher', 'name subject')
+      .populate('teachers', 'name subject')
+      .populate('teacherClasses.teacher', 'name subject')
+      .populate('teacherClasses.class', 'name code')
       .populate('class', 'name code');
 
     sendStudentTokenResponse(populatedStudent, 201, res, 'Student registered successfully');
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/students/teachers/enroll — Add a teacher to the signed-in student's account
+export const addStudentTeacher = async (req, res, next) => {
+  try {
+    const { teacherId } = req.body || {};
+    if (!mongoose.isValidObjectId(teacherId)) {
+      return res.status(400).json({ success: false, message: 'Choose a valid teacher.' });
+    }
+
+    const teacher = await Teacher.findOne({
+      _id: teacherId,
+      showInRegistrationList: { $ne: false },
+    }).select('name subject');
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found.' });
+    }
+
+    const student = await Student.findById(req.student._id);
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found.' });
+
+    const linkedTeacherIds = getStudentTeacherIds(student);
+    student.teachers = linkedTeacherIds;
+    const alreadyLinked = linkedTeacherIds.some(
+      (id) => id.toString() === teacher._id.toString()
+    );
+    if (!alreadyLinked) student.teachers = [...linkedTeacherIds, teacher._id];
+    if (!student.teacher) student.teacher = teacher._id;
+    await student.save();
+
+    const updated = await Student.findById(student._id)
+      .select('-password')
+      .populate('teacher', 'name subject')
+      .populate('teachers', 'name subject')
+      .populate('teacherClasses.teacher', 'name subject')
+      .populate('teacherClasses.class', 'name code')
+      .populate('class', 'name code');
+
+    res.json({
+      success: true,
+      message: alreadyLinked ? 'You already follow this teacher.' : 'Teacher added successfully.',
+      data: updated,
+    });
   } catch (err) {
     next(err);
   }
@@ -169,6 +233,9 @@ export const loginStudent = async (req, res, next) => {
     })
       .select('+password')
       .populate('teacher', 'name subject')
+      .populate('teachers', 'name subject')
+      .populate('teacherClasses.teacher', 'name subject')
+      .populate('teacherClasses.class', 'name code')
       .populate('class', 'name code');
 
     if (!student) {
@@ -198,7 +265,7 @@ export const createStudentPasswordResetLink = async (req, res, next) => {
     const student = await Student.findOneAndUpdate(
       {
         _id: req.params.studentId,
-        teacher: req.teacher._id,
+        ...teacherStudentFilter(req.teacher._id),
       },
       {
         $set: {
@@ -262,11 +329,26 @@ export const logoutStudent = async (req, res) => {
 };
 
 // GET /api/students/me — Student profile (Student protected)
-export const getStudentMe = async (req, res) => {
-  res.json({
-    success: true,
-    data: req.student,
-  });
+export const getStudentMe = async (req, res, next) => {
+  try {
+    const teacherId = req.student.teacher?._id || req.student.teacher;
+    const workspace = teacherId
+      ? await TutorWorkspace.findOne({ teacher: teacherId }).select('students currency').lean()
+      : null;
+    const finance = workspace?.students?.find((record) => String(record.studentId) === String(req.student._id));
+    const data = req.student.toObject();
+    data.billing = finance?.courseFee !== null && finance?.courseFee !== undefined
+      ? {
+          courseFee: finance.courseFee,
+          installmentCount: finance.installmentCount,
+          payments: (finance.payments || []).map(({ id, amount, date }) => ({ id, amount, date })),
+          currency: workspace.currency || 'GEL',
+        }
+      : null;
+    res.json({ success: true, data });
+  } catch (err) {
+    next(err);
+  }
 };
 
 // POST /api/students/join-class — Join/switch class using class code (Student protected)
@@ -277,10 +359,8 @@ export const joinClassByCode = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Class code is required' });
     }
 
-    const studentTeacherId = req.student.teacher?._id || req.student.teacher;
     const targetClass = await Class.findOne({
       code: classCode.trim().toUpperCase(),
-      teacher: studentTeacherId,
     })
       .populate('teacher', 'name subject');
 
@@ -288,16 +368,34 @@ export const joinClassByCode = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Class with this code was not found' });
     }
 
-    // Update student's class (and teacher if it belongs to a new teacher)
-    req.student.class = targetClass._id;
-    if (targetClass.teacher?._id) {
-      req.student.teacher = targetClass.teacher._id;
+    const student = await Student.findById(req.student._id);
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+    const targetTeacherId = targetClass.teacher?._id || targetClass.teacher;
+    const linkedTeacherIds = getStudentTeacherIds(student);
+    student.teachers = linkedTeacherIds;
+    const alreadyLinked = linkedTeacherIds.some(
+      (id) => id.toString() === targetTeacherId.toString()
+    );
+    if (!alreadyLinked) student.teachers = [...linkedTeacherIds, targetTeacherId];
+    if (!student.teacher) student.teacher = targetTeacherId;
+
+    student.teacherClasses = (student.teacherClasses || []).filter((item) => {
+      const linkedTeacherId = item.teacher?._id || item.teacher;
+      return linkedTeacherId?.toString() !== targetTeacherId.toString();
+    });
+    student.teacherClasses.push({ teacher: targetTeacherId, class: targetClass._id });
+    const primaryTeacherId = student.teacher?._id || student.teacher;
+    if (primaryTeacherId?.toString() === targetTeacherId.toString()) {
+      student.class = targetClass._id;
     }
-    await req.student.save();
+    await student.save();
 
     const updated = await Student.findById(req.student._id)
       .select('-password')
       .populate('teacher', 'name subject')
+      .populate('teachers', 'name subject')
+      .populate('teacherClasses.teacher', 'name subject')
+      .populate('teacherClasses.class', 'name code')
       .populate('class', 'name code');
 
     res.json({
@@ -310,31 +408,29 @@ export const joinClassByCode = async (req, res, next) => {
   }
 };
 
-// GET /api/students/my-quizzes — List quizzes from student's teacher with open/closed status (Student protected)
+// GET /api/students/my-quizzes — List quizzes from linked teachers with open/closed status (Student protected)
 export const getStudentQuizzes = async (req, res, next) => {
   try {
     const student = req.student;
-    const teacherId = student.teacher?._id || student.teacher;
+    const teacherIds = getStudentTeacherIds(student);
 
-    if (!teacherId) {
+    if (teacherIds.length === 0) {
       return res.json({ success: true, data: [] });
     }
 
-    // Fetch active non-deleted quizzes from student's teacher
+    // Fetch active non-deleted quizzes from all linked teachers
     const quizzes = await Quiz.find({
-      teacher: teacherId,
+      teacher: { $in: teacherIds },
       isDeleted: false,
     })
-      .select('title shareCode isActive accessMode assignedClasses allowedStudents blockedStudents settings createdAt')
+      .select('teacher title shareCode isActive accessMode assignedClasses allowedStudents blockedStudents settings createdAt')
+      .populate('teacher', 'name subject')
       .sort({ createdAt: -1 });
 
     // Fetch student's submissions for these quizzes
     const submissions = await Submission.find({
       student: student._id,
     }).sort({ createdAt: -1 });
-
-    const studentClassIdStr = student.class?._id?.toString() || student.class?.toString() || null;
-    const studentIdStr = student._id.toString();
 
     const formattedQuizzes = quizzes.map((quiz) => {
       const accessEvaluation = evaluateStudentQuizAccess(quiz, student);
@@ -350,6 +446,9 @@ export const getStudentQuizzes = async (req, res, next) => {
 
       return {
         _id: quiz._id,
+        teacherId: quiz.teacher?._id || quiz.teacher,
+        teacherName: quiz.teacher?.name || '',
+        teacherSubject: quiz.teacher?.subject || '',
         title: quiz.title,
         shareCode: quiz.shareCode,
         isOpen,

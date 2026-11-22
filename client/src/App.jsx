@@ -12,6 +12,8 @@ import StudentDashboard from './pages/StudentDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Logo from './components/Logo';
 import TeacherSettings from './pages/TeacherSettings';
+import TutorDashboard from './pages/TutorDashboard';
+import StudentBilling from './pages/StudentBilling';
 
 import { useLanguage } from './context/LanguageContext';
 import { useAuth } from './context/AuthContext';
@@ -43,6 +45,15 @@ function IconDashboard() {
       <rect x="14" y="3" width="7" height="5" rx="1" />
       <rect x="14" y="12" width="7" height="9" rx="1" />
       <rect x="3" y="16" width="7" height="5" rx="1" />
+    </svg>
+  );
+}
+
+function IconFinance() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+      <path d="M9 8h6M9 12h6M9 16h3" />
     </svg>
   );
 }
@@ -187,11 +198,13 @@ function Navbar() {
       { to: '/create', icon: <IconCreate />, label: t('navCreate'), active: pathname === '/create' },
       { to: '/dashboard', icon: <IconDashboard />, label: t('navDashboard'), active: pathname.startsWith('/dashboard') },
       { to: '/students', icon: <IconStudents />, label: t('navStudents'), active: pathname === '/students' },
+      { to: '/tutor-management', icon: <IconFinance />, label: t('navTutorManagement'), active: pathname.startsWith('/tutor-management') },
       { to: '/settings', icon: <IconSettings />, label: t('profileAndSettings'), active: pathname === '/settings' },
     );
   } else if (student) {
     navItems.push(
       { to: '/student/portal', icon: <IconPortal />, label: t('navStudentPortal'), active: pathname === '/student/portal' },
+      { to: '/student/billing', icon: <IconFinance />, label: t('navStudentBilling'), active: pathname.startsWith('/student/billing') },
     );
   } else {
     navItems.push(
@@ -328,9 +341,18 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/tutor-management"
+            element={
+              <ProtectedRoute>
+                <TutorDashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Student Portal Route */}
           <Route path="/student/portal" element={<StudentDashboard />} />
+          <Route path="/student/billing" element={<StudentBilling />} />
 
           {/* Public Student Route */}
           <Route path="/quiz/:shareCode" element={<TakeQuiz />} />

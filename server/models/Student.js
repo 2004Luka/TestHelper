@@ -25,9 +25,14 @@ const studentSchema = new mongoose.Schema(
     teacher: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Teacher',
-      required: [true, 'Teacher is required'],
+      default: null,
       index: true,
     },
+    teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', index: true }],
+    teacherClasses: [{
+      teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
+      class: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', default: null },
+    }],
     class: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Class',

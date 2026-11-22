@@ -72,6 +72,16 @@ const api = {
     return handleResponse(res);
   },
 
+  async put(path, body) {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    return handleResponse(res);
+  },
+
   async del(path) {
     const res = await fetch(`${BASE}${path}`, {
       method: 'DELETE',

@@ -21,6 +21,8 @@ Match your task to the problem domain below. Open **ONLY** the designated target
 | **Docx Uploads & Parsing** | `client/src/components/FileUpload.jsx`<br>`server/utils/wordParser.js` | — |
 | **Teacher Settings & Profile** | `client/src/pages/TeacherSettings.jsx` (dedicated page) | `learned_preferences.md` (§ Settings) |
 | **Classes & Student Roster** | `client/src/pages/TeacherStudents.jsx`<br>`server/controllers/classController.js` | — |
+| **Tutor Finance & Student Management** | `client/src/pages/TutorDashboard.jsx`<br>`server/controllers/tutorDashboardController.js`<br>`server/models/TutorWorkspace.js`<br>`server/routes/tutorDashboardRoutes.js` | Teacher-protected MongoDB workspace |
+| **Student Billing Portal** | `client/src/pages/StudentBilling.jsx`<br>`server/controllers/studentAuthController.js` | Student-authenticated billing summary |
 | **API Client Network Calls** | `client/src/api/client.js` | — |
 | **Server Pipeline & Database Config** | `server/server.js`<br>`server/config/db.js` | — |
 | **Architecture / File Tree Updates** | `.agents/rules/codebase_architecture.md`<br>`STRUCTURE.md`<br>`AGENTS.md` | `.agents/rules/auto_update.md` |
@@ -32,6 +34,7 @@ Match your task to the problem domain below. Open **ONLY** the designated target
 - **Client (`client/`):** React 18 SPA bundled with Vite. Static assets live in `client/public/`; the landing page background is `client/public/quizzup-landing-bg.avif`. Single stylesheet `client/src/index.css` contains all design tokens (`:root`), classes, and responsive styles. Context providers (`AuthContext`, `LanguageContext`, `StyleContext`) wrap the app in `main.jsx`.
 - **Server (`server/`):** Node.js + Express REST API. Controllers in `server/controllers/`, Mongoose models in `server/models/`, routes in `server/routes/`, auth middleware in `server/middleware/authMiddleware.js`.
 - **Database:** MongoDB connected via Mongoose in `server/config/db.js`.
+- **Tutor workspace:** Private tutor groups, student assessments, course fees, and payments are stored per teacher in MongoDB.
 
 ---
 

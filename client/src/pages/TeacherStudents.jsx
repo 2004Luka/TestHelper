@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +11,8 @@ export default function TeacherStudents() {
   const [activeTab, setActiveTab] = useState('classes'); // 'classes' | 'students'
   const [classes, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const classStudentsDialogRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -48,6 +50,12 @@ export default function TeacherStudents() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (selectedClass && classStudentsDialogRef.current && !classStudentsDialogRef.current.open) {
+      classStudentsDialogRef.current.showModal();
+    }
+  }, [selectedClass]);
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);
@@ -177,6 +185,10 @@ export default function TeacherStudents() {
         s.class?.code?.toLowerCase().includes(q)
     );
   }, [students, searchQuery]);
+
+  const selectedClassStudents = selectedClass
+    ? students.filter((student) => String(student.class?._id || student.class?.id || student.class || '') === String(selectedClass._id))
+    : [];
 
   // Initials generator for student avatars
   const getInitials = (name) => {
@@ -357,12 +369,16 @@ export default function TeacherStudents() {
           ) : (
             <div className="classes-grid">
               {filteredClasses.map((cls) => (
-                <div key={cls._id} className="card class-card">
+                <div
+                  key={cls._id}
+                  className="card class-card"
+                  onClick={() => setSelectedClass(cls)}
+                >
                   <div className="class-card-header">
-                    <h3>{cls.name}</h3>
+                    <h3><button type="button" className="class-card-open" aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); setSelectedClass(cls); }}>{cls.name}</button></h3>
                     <button
                       className="btn-icon-danger"
-                      onClick={() => handleDeleteClass(cls._id, cls.name)}
+                      onClick={(event) => { event.stopPropagation(); handleDeleteClass(cls._id, cls.name); }}
                       title="Delete Class"
                       aria-label="Delete Class"
                     >
@@ -382,7 +398,7 @@ export default function TeacherStudents() {
                     <span className="class-code-value">{cls.code}</span>
                     <button
                       className="btn btn-secondary btn-sm"
-                      onClick={() => handleCopyCode(cls.code)}
+                      onClick={(event) => { event.stopPropagation(); handleCopyCode(cls.code); }}
                       title="Copy Class Code"
                     >
                       {copiedCode === cls.code ? t('btnCopied') : t('copyClassCode')}
@@ -653,6 +669,34 @@ export default function TeacherStudents() {
             </form>
           </div>
         </div>
+      )}
+
+      {selectedClass && (
+        <dialog
+          ref={classStudentsDialogRef}
+          className="class-students-dialog"
+          aria-labelledby="class-students-dialog-title"
+          onCancel={(event) => { event.preventDefault(); setSelectedClass(null); }}
+          onClick={(event) => { if (event.target === event.currentTarget) setSelectedClass(null); }}
+        >
+          <div className="class-students-dialog-content">
+            <div className="class-students-dialog-header">
+              <div>
+                <p>{t('studentListTitle')}</p>
+                <h2 id="class-students-dialog-title">{selectedClass.name}</h2>
+              </div>
+              <button type="button" className="class-students-dialog-close" aria-label={t('closeModal')} onClick={() => setSelectedClass(null)}>×</button>
+            </div>
+            <div className="class-students-popup-list">
+              {selectedClassStudents.length > 0 ? selectedClassStudents.map((student) => (
+                <article className="class-students-popup-row" key={student._id}>
+                  <span className="class-students-popup-avatar" aria-hidden="true">{getInitials(student.name)}</span>
+                  <span className="class-students-popup-details"><strong>{student.name}</strong><span>{student.username || '—'}</span></span>
+                </article>
+              )) : <p className="class-students-popup-empty">{t('noStudentsYet')}</p>}
+            </div>
+          </div>
+        </dialog>
       )}
 
       {resetLinkModal && (

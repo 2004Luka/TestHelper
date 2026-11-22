@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function StudentDashboard() {
-  const { student, updateStudentClass } = useAuth();
+  const { student, updateStudentAssociations } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
 
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [availableTeachers, setAvailableTeachers] = useState([]);
+  const [loadingTeacherDirectory, setLoadingTeacherDirectory] = useState(true);
+  const [teacherChoice, setTeacherChoice] = useState('');
+  const [teacherFilter, setTeacherFilter] = useState('all');
+  const [savingTeacher, setSavingTeacher] = useState(false);
+  const [teacherError, setTeacherError] = useState('');
+  const [teacherSuccess, setTeacherSuccess] = useState('');
 
   // Join class modal
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -34,6 +40,33 @@ export default function StudentDashboard() {
     loadQuizzes();
   }, []);
 
+  useEffect(() => {
+    api.get('/students/teachers')
+      .then((res) => setAvailableTeachers(res.data || []))
+      .catch(() => setAvailableTeachers([]))
+      .finally(() => setLoadingTeacherDirectory(false));
+  }, []);
+
+  const handleAddTeacher = async (e) => {
+    e.preventDefault();
+    if (!teacherChoice) return;
+
+    try {
+      setSavingTeacher(true);
+      setTeacherError('');
+      setTeacherSuccess('');
+      const res = await api.post('/students/teachers/enroll', { teacherId: teacherChoice });
+      if (res.data) updateStudentAssociations(res.data);
+      setTeacherChoice('');
+      setTeacherSuccess(t('teacherAdded'));
+      await loadQuizzes();
+    } catch (err) {
+      setTeacherError(err.message || t('teacherAddFailed'));
+    } finally {
+      setSavingTeacher(false);
+    }
+  };
+
   const handleJoinClass = async (e) => {
     e.preventDefault();
     if (!classCodeInput.trim()) return;
@@ -47,9 +80,7 @@ export default function StudentDashboard() {
         classCode: classCodeInput.trim().toUpperCase(),
       });
 
-      if (res.data?.class) {
-        updateStudentClass(res.data.class);
-      }
+      if (res.data) updateStudentAssociations(res.data);
       setJoinSuccess(res.message || 'Joined class successfully!');
       setClassCodeInput('');
       setTimeout(() => {
@@ -64,6 +95,21 @@ export default function StudentDashboard() {
       setJoinLoading(false);
     }
   };
+
+  const linkedTeachers = student?.teachers?.length
+    ? student.teachers
+    : student?.teacher
+      ? [student.teacher]
+      : [];
+  const linkedTeacherIds = new Set(
+    linkedTeachers.map((teacher) => String(teacher?._id || teacher))
+  );
+  const teachersToAdd = availableTeachers.filter(
+    (teacher) => !linkedTeacherIds.has(String(teacher._id))
+  );
+  const visibleQuizzes = teacherFilter === 'all'
+    ? quizzes
+    : quizzes.filter((quiz) => String(quiz.teacherId) === teacherFilter);
 
   return (
     <div className="page">
@@ -88,10 +134,11 @@ export default function StudentDashboard() {
 
         <div className="student-profile-meta">
           <div className="meta-item">
-            <span className="meta-label">{t('currentTeacher')}</span>
+            <span className="meta-label">{t('myTeachers')}</span>
             <span className="meta-val">
-              {student?.teacher?.name || 'Assigned Teacher'}
-              {student?.teacher?.subject && ` (${student.teacher.subject})`}
+              {linkedTeachers.length > 0
+                ? linkedTeachers.map((teacher) => teacher?.name || '').filter(Boolean).join(', ')
+                : t('noTeachersLinked')}
             </span>
           </div>
 
@@ -118,13 +165,58 @@ export default function StudentDashboard() {
           >
             + {t('joinClassBtn')}
           </button>
+          <Link className="btn btn-secondary btn-sm" to="/student/billing">
+            {t('navStudentBilling')}
+          </Link>
         </div>
+
+        <form className="student-teacher-enroll" onSubmit={handleAddTeacher}>
+          <label className="meta-label" htmlFor="student-add-teacher">{t('addTeacher')}</label>
+          <div className="student-teacher-enroll-row">
+            <select
+              id="student-add-teacher"
+              value={teacherChoice}
+              onChange={(e) => setTeacherChoice(e.target.value)}
+              disabled={savingTeacher || loadingTeacherDirectory || teachersToAdd.length === 0}
+            >
+              <option value="">{t('chooseTeacherToAdd')}</option>
+              {teachersToAdd.map((teacher) => (
+                <option key={teacher._id} value={teacher._id}>
+                  {teacher.name} ({teacher.subject})
+                </option>
+              ))}
+            </select>
+            <button className="btn btn-primary btn-sm" type="submit" disabled={!teacherChoice || savingTeacher}>
+              {savingTeacher ? '...' : t('addTeacherBtn')}
+            </button>
+          </div>
+          {!loadingTeacherDirectory && teachersToAdd.length === 0 && (
+            <span className="student-teacher-enroll-note">{t('noMoreTeachers')}</span>
+          )}
+          {teacherError && <span className="student-teacher-enroll-error" role="alert">{teacherError}</span>}
+          {teacherSuccess && <span className="student-teacher-enroll-success" role="status">{teacherSuccess}</span>}
+        </form>
       </div>
 
       {/* Tests Header */}
-      <div className="section-title" style={{ marginTop: 32, marginBottom: 18, justifyContent: 'space-between' }}>
+      <div className="section-title student-tests-heading" style={{ marginTop: 32, marginBottom: 18, justifyContent: 'space-between' }}>
         <span>{t('myTestsTitle')}</span>
-        <span className="badge badge-accent">{quizzes.length} {t('testsCount')}</span>
+        <div className="student-test-filters">
+          <label htmlFor="student-test-teacher">{t('testsByTeacher')}</label>
+          <select
+            id="student-test-teacher"
+            value={teacherFilter}
+            onChange={(e) => setTeacherFilter(e.target.value)}
+          >
+            <option value="all">{t('allTeachers')}</option>
+            {linkedTeachers.map((teacher) => (
+              <option key={teacher?._id || teacher} value={String(teacher?._id || teacher)}>
+                {teacher?.name || t('currentTeacher')}
+              </option>
+            ))}
+          </select>
+          <span className="badge badge-accent">{visibleQuizzes.length} {t('testsCount')}</span>
+        </div>
       </div>
 
       {/* Quizzes Grid */}
@@ -136,14 +228,19 @@ export default function StudentDashboard() {
         <div className="card empty-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
           <p style={{ color: 'var(--text-secondary)' }}>{t('noTestsAvailable')}</p>
         </div>
+      ) : visibleQuizzes.length === 0 ? (
+        <div className="card empty-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>{t('noTestsFromTeacher')}</p>
+        </div>
       ) : (
         <div className="student-quizzes-grid">
-          {quizzes.map((quiz) => (
+          {visibleQuizzes.map((quiz) => (
             <div key={quiz._id} className={`card quiz-card ${!quiz.isOpen ? 'quiz-card-closed' : ''}`}>
               <div className="quiz-card-top">
                 <span className={`badge ${quiz.isOpen ? 'badge-success' : 'badge-danger'}`}>
                   {quiz.isOpen ? t('testStatusOpen') : t('testStatusClosed')}
                 </span>
+                {quiz.teacherName && <span className="badge badge-off">{quiz.teacherName}</span>}
                 {quiz.timeLimit > 0 && (
                   <span className="badge badge-off">{quiz.timeLimit}m</span>
                 )}

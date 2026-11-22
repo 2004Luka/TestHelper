@@ -56,6 +56,9 @@ export const protectStudent = async (req, res, next) => {
     const student = await Student.findById(decoded.id)
       .select('-password')
       .populate('teacher', 'name subject')
+      .populate('teachers', 'name subject')
+      .populate('teacherClasses.teacher', 'name subject')
+      .populate('teacherClasses.class', 'name code')
       .populate('class', 'name code');
 
     if (!student) {
@@ -88,6 +91,9 @@ export const optionalAuth = async (req, res, next) => {
           const student = await Student.findById(decoded.id)
             .select('-password')
             .populate('teacher', 'name subject')
+            .populate('teachers', 'name subject')
+            .populate('teacherClasses.teacher', 'name subject')
+            .populate('teacherClasses.class', 'name code')
             .populate('class', 'name code');
           if (student && Number(decoded.sessionVersion ?? 0) === Number(student.sessionVersion ?? 0)) {
             req.student = student;

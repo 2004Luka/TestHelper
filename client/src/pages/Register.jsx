@@ -25,11 +25,9 @@ export default function Register() {
   const [studentUsername, setStudentUsername] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
   const [selectedTeacherId, setSelectedTeacherId] = useState('');
-  const [selectedClassId, setSelectedClassId] = useState('');
 
   // Dropdown data
   const [teachersList, setTeachersList] = useState([]);
-  const [classesList, setClassesList] = useState([]);
   const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [directTeacher, setDirectTeacher] = useState(null);
 
@@ -73,24 +71,6 @@ export default function Register() {
     }
   }, [role]);
 
-  // Fetch classes for selected teacher
-  useEffect(() => {
-    if (selectedTeacherId) {
-      const fetchClasses = async () => {
-        try {
-          const res = await api.get(`/students/teachers/${selectedTeacherId}/classes`);
-          setClassesList(res.data || []);
-        } catch {
-          setClassesList([]);
-        }
-      };
-      fetchClasses();
-    } else {
-      setClassesList([]);
-      setSelectedClassId('');
-    }
-  }, [selectedTeacherId]);
-
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
     if (!teacherName.trim() || !teacherSubject.trim() || !teacherPassword) {
@@ -122,8 +102,8 @@ export default function Register() {
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
-    if (!studentFullName.trim() || !studentUsername.trim() || !studentPassword || !selectedTeacherId) {
-      setError('Please provide full name, username, password, and select a teacher.');
+    if (!studentFullName.trim() || !studentUsername.trim() || !studentPassword) {
+      setError('Please provide full name, username, and password.');
       return;
     }
 
@@ -134,8 +114,7 @@ export default function Register() {
         name: studentFullName.trim(),
         username: studentUsername.trim(),
         password: studentPassword,
-        teacherId: selectedTeacherId,
-        classId: selectedClassId || undefined,
+        ...(selectedTeacherId ? { teacherId: selectedTeacherId } : {}),
       });
 
       studentLogin(res.student);
@@ -262,30 +241,12 @@ export default function Register() {
                 <select
                   value={selectedTeacherId}
                   onChange={(e) => setSelectedTeacherId(e.target.value)}
-                  required
                   disabled={loadingTeachers}
                 >
-                  <option value="">{t('chooseTeacherPrompt')}</option>
+                  <option value="">{t('teacherOptionalPrompt')}</option>
                   {teachersList.map((tc) => (
                     <option key={tc._id} value={tc._id}>
                       {tc.name} ({tc.subject})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {selectedTeacherId && classesList.length > 0 && (
-              <div className="form-group-inline">
-                <label>{t('selectClass')}</label>
-                <select
-                  value={selectedClassId}
-                  onChange={(e) => setSelectedClassId(e.target.value)}
-                >
-                  <option value="">{t('chooseClassPrompt')}</option>
-                  {classesList.map((cls) => (
-                    <option key={cls._id} value={cls._id}>
-                      {cls.name}
                     </option>
                   ))}
                 </select>

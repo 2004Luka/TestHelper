@@ -304,9 +304,6 @@ export default function QuizDetail() {
               {t('editQuizBtn')}
             </button>
           )}
-          <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
-            {copied ? t('btnCopied') : t('btnCopy')}
-          </button>
           <button
             className={`btn btn-sm ${quiz.isActive ? 'btn-secondary' : 'btn-primary'}`}
             onClick={handleToggle}

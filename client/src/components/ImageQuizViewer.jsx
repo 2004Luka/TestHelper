@@ -299,7 +299,6 @@ export default function ImageQuizViewer({
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
             transformOrigin: 'center center',
-            transition: isDragging ? 'none' : 'transform 0.08s ease-out',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -322,6 +321,12 @@ export default function ImageQuizViewer({
             }}
           />
         </div>
+
+        {!isModalOpen && currentQ && (
+          <div className="image-quiz-current-question" aria-live="polite" aria-atomic="true">
+            {currentQ.questionText}
+          </div>
+        )}
 
         {/* Floating Side Left: Finish Test (Desktop only) */}
         {!isModalOpen && (

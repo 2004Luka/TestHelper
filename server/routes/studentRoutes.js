@@ -4,6 +4,7 @@ import {
   getPublicTeachers,
   getTeacherPublicInfo,
   getTeacherClassesPublic,
+  addStudentTeacher,
   registerStudent,
   loginStudent,
   createStudentPasswordResetLink,
@@ -36,6 +37,7 @@ router.post('/logout', logoutStudent);
 
 // Protected student routes
 router.get('/me', protectStudent, getStudentMe);
+router.post('/teachers/enroll', protectStudent, addStudentTeacher);
 router.post('/join-class', protectStudent, joinClassByCode);
 router.get('/my-quizzes', protectStudent, getStudentQuizzes);
 

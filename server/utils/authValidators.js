@@ -58,9 +58,11 @@ export const studentRegisterSchema = z.object({
     .max(100, 'Password is too long')
     .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Password must be at most 72 UTF-8 bytes'),
   teacherId: z
-    .string({ required_error: 'Teacher is required' })
+    .string()
     .trim()
-    .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+    .optional()
+    .nullable()
+    .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
       message: 'Invalid teacher selection',
     }),
   classId: z

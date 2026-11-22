@@ -9,7 +9,7 @@ import {
 import { nanoid } from 'nanoid';
 import fs from 'fs/promises';
 import path from 'path';
-import { evaluateStudentQuizAccess } from '../utils/quizAccess.js';
+import { evaluateStudentQuizAccess, studentHasTeacher } from '../utils/quizAccess.js';
 
 const MAX_BACKGROUND_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -218,8 +218,7 @@ export const getQuizByCode = async (req, res, next) => {
 
     if (!isOwnerTeacher) {
       if (req.student) {
-        const studentTeacherId = req.student.teacher?._id || req.student.teacher;
-        if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+        if (!studentHasTeacher(req.student, quiz.teacher)) {
           return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
         }
       }
@@ -298,8 +297,7 @@ export const getQuizImage = async (req, res, next) => {
 
     if (!isOwnerTeacher) {
       if (req.student) {
-        const studentTeacherId = req.student.teacher?._id || req.student.teacher;
-        if (studentTeacherId?.toString() !== quiz.teacher?.toString()) {
+        if (!studentHasTeacher(req.student, quiz.teacher)) {
           return res.status(403).json({ success: false, message: 'This quiz is not available to your account' });
         }
       }

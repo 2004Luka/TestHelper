@@ -13,6 +13,7 @@ import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import classRoutes from './routes/classRoutes.js';
+import tutorDashboardRoutes from './routes/tutorDashboardRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -71,7 +72,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     return callback(null, allowedOrigins.includes(origin));
   },
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
@@ -153,6 +154,8 @@ app.use('/api/students', studentRoutes);
 app.use('/students', studentRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/classes', classRoutes);
+app.use('/api/tutor-dashboard', tutorDashboardRoutes);
+app.use('/tutor-dashboard', tutorDashboardRoutes);
 
 // Health check
 app.get(['/api/health', '/health'], (req, res) => res.json({ status: 'ok' }));

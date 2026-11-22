@@ -72,6 +72,10 @@ export function AuthProvider({ children }) {
     });
   };
 
+  const updateStudentAssociations = (updates) => {
+    setStudent((prev) => (prev ? { ...prev, ...updates } : prev));
+  };
+
   const updateTeacherProfile = (updatedData) => {
     setTeacher((prev) => {
       return { ...prev, ...updatedData };
@@ -90,6 +94,7 @@ export function AuthProvider({ children }) {
         studentLogin,
         studentLogout,
         updateStudentClass,
+        updateStudentAssociations,
         updateTeacherProfile,
       }}
     >

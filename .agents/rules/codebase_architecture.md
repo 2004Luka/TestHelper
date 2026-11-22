@@ -46,10 +46,12 @@ TESTGENERATOR/
 │   │   │   ├── Login.jsx           # Teacher & student login form
 │   │   │   ├── QuizDetail.jsx      # Quiz detail & management view
 │   │   │   ├── Register.jsx        # Teacher & student registration form
+│   │   │   ├── StudentBilling.jsx  # Student payment plan and billing history
 │   │   │   ├── StudentDashboard.jsx # Student portal (assigned tests & join class)
 │   │   │   ├── TakeQuiz.jsx        # Student quiz-taking interface
 │   │   │   ├── TeacherSettings.jsx # Teacher profile, direct registration link, & settings full page
-│   │   │   └── TeacherStudents.jsx # Teacher classes & students roster management
+│   │   │   ├── TeacherStudents.jsx # Teacher classes & students roster management
+│   │   │   └── TutorDashboard.jsx  # Private tutor groups, fees, payments, and assessments
 │   │   ├── utils/
 │   │   │   └── imageCompressor.js  # Client-side image resizer & WebP optimizer
 │   │   ├── App.jsx                 # Navigation, routing, and layout shell
@@ -66,7 +68,8 @@ TESTGENERATOR/
 │   │   ├── commentController.js    # Discussion/comment CRUD
 │   │   ├── quizController.js       # Quiz CRUD & file-based generation
 │   │   ├── studentAuthController.js # Student auth & assigned quiz access
-│   │   └── submissionController.js # Student submission handling & grading
+│   │   ├── submissionController.js # Student submission handling & grading
+│   │   └── tutorDashboardController.js # Private tutor workspace CRUD
 │   ├── middleware/
 │   │   ├── authMiddleware.js       # JWT verification & request auth guard
 │   │   └── errorHandler.js         # Global error handling middleware
@@ -76,14 +79,16 @@ TESTGENERATOR/
 │   │   ├── Quiz.js                 # Quiz Mongoose schema
 │   │   ├── Student.js              # Student Mongoose schema
 │   │   ├── Submission.js           # Student submission Mongoose schema
-│   │   └── Teacher.js              # Teacher/User Mongoose schema
+│   │   ├── Teacher.js              # Teacher/User Mongoose schema
+│   │   └── TutorWorkspace.js       # Teacher-owned tutor finance workspace
 │   ├── routes/
 │   │   ├── authRoutes.js           # /api/auth/* route definitions
 │   │   ├── classRoutes.js          # /api/classes/* route definitions
 │   │   ├── commentRoutes.js        # /api/comments/* route definitions
 │   │   ├── quizRoutes.js           # /api/quiz/* route definitions
 │   │   ├── studentRoutes.js        # /api/students/* route definitions
-│   │   └── submissionRoutes.js     # /api/submissions/* route definitions
+│   │   ├── submissionRoutes.js     # /api/submissions/* route definitions
+│   │   └── tutorDashboardRoutes.js # /api/tutor-dashboard/* protected routes
 │   ├── uploads/                    # Temporary file upload storage
 │   ├── utils/
 │   │   ├── authValidators.js       # Zod schemas for teacher & student registration and login
@@ -111,5 +116,7 @@ TESTGENERATOR/
 | **Comments / Discussion** | `server/controllers/commentController.js`, `server/models/Comment.js` | `client/src/components/Discussion.jsx` |
 | **File Uploads & Parsing** | `server/utils/wordParser.js`, `client/src/components/FileUpload.jsx` | `server/uploads/` |
 | **API Client (Frontend)** | `client/src/api/client.js` | — |
+| **Tutor Finance & Student Management** | `client/src/pages/TutorDashboard.jsx`, `server/controllers/tutorDashboardController.js` | `server/models/TutorWorkspace.js`, `server/routes/tutorDashboardRoutes.js` |
+| **Student Billing Portal** | `client/src/pages/StudentBilling.jsx`, `server/controllers/studentAuthController.js` | Student-authenticated read access |
 | **Environment Variables** | `server/.env.example` (NEVER open `.env`) | — |
 | **AI Rules & Behavior** | `.agents/rules/*.md`, `AGENTS.md` | `.agents/rules/learned_preferences.md` |

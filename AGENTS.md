@@ -74,6 +74,8 @@ ELSE {
 - **Languages & Translations:** [translations.js](file:///d:/TESTGENERATOR/client/src/translations.js), [LanguageContext.jsx](file:///d:/TESTGENERATOR/client/src/context/LanguageContext.jsx)
 - **Auth & Sessions:** [AuthContext.jsx](file:///d:/TESTGENERATOR/client/src/context/AuthContext.jsx), [authMiddleware.js](file:///d:/TESTGENERATOR/server/middleware/authMiddleware.js)
 - **Frontend Pages & Routes:** [App.jsx](file:///d:/TESTGENERATOR/client/src/App.jsx), [pages/](file:///d:/TESTGENERATOR/client/src/pages/)
+- **Tutor Finance & Management:** [TutorDashboard.jsx](file:///d:/TESTGENERATOR/client/src/pages/TutorDashboard.jsx), [tutorDashboardController.js](file:///d:/TESTGENERATOR/server/controllers/tutorDashboardController.js), [TutorWorkspace.js](file:///d:/TESTGENERATOR/server/models/TutorWorkspace.js), [tutorDashboardRoutes.js](file:///d:/TESTGENERATOR/server/routes/tutorDashboardRoutes.js)
+- **Student Billing:** [StudentBilling.jsx](file:///d:/TESTGENERATOR/client/src/pages/StudentBilling.jsx), [studentAuthController.js](file:///d:/TESTGENERATOR/server/controllers/studentAuthController.js)
 - **Backend API & Logic:** [server.js](file:///d:/TESTGENERATOR/server/server.js), [routes/](file:///d:/TESTGENERATOR/server/routes/), [controllers/](file:///d:/TESTGENERATOR/server/controllers/), [models/](file:///d:/TESTGENERATOR/server/models/)
 - **Detailed Rules Directory:** [.agents/rules/](file:///d:/TESTGENERATOR/.agents/rules/)
 

@@ -405,12 +405,6 @@ export default function Dashboard() {
                       {q.isActive ? t('finishQuizBtn') : t('reopenQuizBtn')}
                     </button>
                     <button
-                      className="btn btn-secondary btn-sm"
-                      onClick={() => handleCopy(q.shareCode, q._id)}
-                    >
-                      {copiedId === q._id ? t('btnCopied') : t('btnCopy')}
-                    </button>
-                    <button
                       className="btn btn-danger btn-sm"
                       onClick={() => handleSoftDelete(q.shareCode)}
                     >
