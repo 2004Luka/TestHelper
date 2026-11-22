@@ -115,6 +115,14 @@ This file captures patterns learned from user feedback, corrections, and prefere
 - **What the user reported:** Ghost buttons in the quiz editor had dark text on dark surfaces.
 - **Rule learned:** Give every button variant an explicit foreground and background color so it does not inherit an unreadable browser default.
 
+### [2026-11-22] - Image Quiz Responsive Controls
+- **What the user corrected:** Keep the existing mobile image quiz controls unchanged while adjusting desktop layout; keep visible space between the finish and questions buttons.
+- **Rule learned:** Limit image quiz desktop control positioning changes to desktop breakpoints. Preserve the established mobile dock layout and spacing.
+
+### [2026-11-22] - Mobile Image Quiz Fit
+- **What the user wanted:** The full image should be visible on first load on mobile, with zoom still available afterward.
+- **Rule learned:** Fit mobile quiz images within both viewport dimensions by default, and do not allow zooming out past that fitted view.
+
 ---
 
 ## Do's & Don'ts (Accumulated)

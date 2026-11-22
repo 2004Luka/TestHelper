@@ -4126,8 +4126,7 @@ tr:hover td {
     left: max(12px, env(safe-area-inset-left));
     right: max(12px, env(safe-area-inset-right));
     align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: space-between;
     gap: 8px;
     z-index: 70;
     pointer-events: none;
@@ -4135,6 +4134,16 @@ tr:hover td {
 
   .image-quiz-mobile-dock > * {
     pointer-events: auto;
+  }
+
+  .image-quiz-background {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 132px);
+    max-height: max(80px, calc(100dvh - 132px));
+    object-fit: contain;
   }
 
   .image-quiz-mobile-zoom {
@@ -4159,7 +4168,7 @@ tr:hover td {
   }
 
   .image-quiz-mobile-questions-btn {
-    flex: 0 1 220px;
+    flex: 1;
     max-width: 220px;
     padding: 10px 16px;
     font-weight: 700;
@@ -4487,15 +4496,18 @@ tr:hover td {
   z-index: 64;
   top: 16px;
   left: 50%;
-  width: min(760px, calc(100% - 32px));
+  width: fit-content;
+  max-width: min(760px, calc(100% - 32px));
   max-height: 24%;
   overflow-y: auto;
   transform: translateX(-50%);
-  padding: 14px 18px;
+  padding: 8px 14px;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.32);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   color: var(--text-primary);
   font-size: 1rem;
   font-weight: 700;
@@ -4689,6 +4701,42 @@ input[type="reset"]:active:enabled,
 
 .image-quiz-container .image-quiz-side-btn:active:not(:disabled) {
   transform: translateY(calc(-50% + 3px));
+}
+
+@media (min-width: 769px) {
+  .image-quiz-side-btn {
+    position: absolute;
+    top: auto;
+    bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  .image-quiz-side-left {
+    left: 50%;
+    right: auto;
+    transform: translateX(calc(-100% - 12px));
+  }
+
+  .image-quiz-side-right {
+    left: 50%;
+    right: auto;
+    transform: translateX(12px);
+  }
+
+  .image-quiz-container .image-quiz-side-left:hover:not(:disabled) {
+    transform: translateX(calc(-100% - 12px));
+  }
+
+  .image-quiz-container .image-quiz-side-right:hover:not(:disabled) {
+    transform: translateX(12px);
+  }
+
+  .image-quiz-container .image-quiz-side-left:active:not(:disabled) {
+    transform: translateX(calc(-100% - 12px)) translateY(3px);
+  }
+
+  .image-quiz-container .image-quiz-side-right:active:not(:disabled) {
+    transform: translateX(12px) translateY(3px);
+  }
 }
 
 .dashboard-tab.active:not(:disabled),

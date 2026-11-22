@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
+const getMinimumZoomScale = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(max-width: 768px)').matches
+    ? 1
+    : 0.4;
+
 export default function ImageQuizViewer({
   quiz,
   showBackButton,
@@ -69,7 +74,8 @@ export default function ImageQuizViewer({
     if (isModalOpen) return;
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-    const newScale = Math.min(Math.max(scale * zoomFactor, 0.4), 6);
+    const minScale = getMinimumZoomScale();
+    const newScale = Math.min(Math.max(scale * zoomFactor, minScale), 6);
 
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -78,10 +84,14 @@ export default function ImageQuizViewer({
     const mouseY = e.clientY - rect.top - rect.height / 2;
     const ratio = newScale / scale;
 
-    setPos((prev) => ({
-      x: mouseX - (mouseX - prev.x) * ratio,
-      y: mouseY - (mouseY - prev.y) * ratio,
-    }));
+    if (minScale === 1 && newScale === minScale) {
+      setPos({ x: 0, y: 0 });
+    } else {
+      setPos((prev) => ({
+        x: mouseX - (mouseX - prev.x) * ratio,
+        y: mouseY - (mouseY - prev.y) * ratio,
+      }));
+    }
     setScale(newScale);
   }, [isModalOpen, scale]);
 
@@ -95,7 +105,11 @@ export default function ImageQuizViewer({
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {
-    if (isModalOpen || e.button !== 0) return;
+    if (
+      isModalOpen ||
+      e.button !== 0 ||
+      (getMinimumZoomScale() === 1 && scale <= 1)
+    ) return;
     setIsDragging(true);
     dragStartRef.current = {
       x: e.clientX - pos.x,
@@ -130,6 +144,10 @@ export default function ImageQuizViewer({
         return;
       }
       lastTapRef.current = now;
+      if (scale <= getMinimumZoomScale()) {
+        setIsDragging(false);
+        return;
+      }
       setIsDragging(true);
       dragStartRef.current = {
         x: e.touches[0].clientX - pos.x,
@@ -163,10 +181,12 @@ export default function ImageQuizViewer({
         e.touches[0].clientY - e.touches[1].clientY
       );
       const ratio = dist / touchStateRef.current.initialDist;
+      const minScale = getMinimumZoomScale();
       const newScale = Math.min(
-        Math.max(touchStateRef.current.initialScale * ratio, 0.4),
+        Math.max(touchStateRef.current.initialScale * ratio, minScale),
         6
       );
+      if (minScale === 1 && newScale === minScale) setPos({ x: 0, y: 0 });
       setScale(newScale);
     }
   };
