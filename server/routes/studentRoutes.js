@@ -14,10 +14,12 @@ import {
   joinClassByCode,
   getStudentQuizzes,
 } from '../controllers/studentAuthController.js';
-import { protect, protectStudent } from '../middleware/authMiddleware.js';
+import { optionalAuth, protect, protectStudent } from '../middleware/authMiddleware.js';
+import MongoRateLimitStore from '../middleware/mongoRateLimitStore.js';
 
 const router = Router();
 const passwordResetLimiter = rateLimit({
+  store: new MongoRateLimitStore('student-password-reset'),
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: true,
@@ -33,7 +35,7 @@ router.post('/register', registerStudent);
 router.post('/login', loginStudent);
 router.post('/password-reset', passwordResetLimiter, resetStudentPassword);
 router.post('/teacher/:studentId/password-reset', protect, createStudentPasswordResetLink);
-router.post('/logout', logoutStudent);
+router.post('/logout', optionalAuth, logoutStudent);
 
 // Protected student routes
 router.get('/me', protectStudent, getStudentMe);

@@ -28,6 +28,9 @@ export const protect = async (req, res, next) => {
     if (!teacher) {
       return res.status(401).json({ message: 'Teacher account not found or unauthorized' });
     }
+    if (Number(decoded.sessionVersion ?? 0) !== Number(teacher.sessionVersion ?? 0)) {
+      return res.status(401).json({ message: 'Teacher session has expired' });
+    }
 
     req.teacher = teacher;
     next();
@@ -101,7 +104,7 @@ export const optionalAuth = async (req, res, next) => {
           }
         } else if (decoded.role === 'teacher') {
           const teacher = await Teacher.findById(decoded.id).select('-password');
-          if (teacher) {
+          if (teacher && Number(decoded.sessionVersion ?? 0) === Number(teacher.sessionVersion ?? 0)) {
             req.teacher = teacher;
             break;
           }

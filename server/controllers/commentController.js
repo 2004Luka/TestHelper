@@ -56,7 +56,7 @@ export const addComment = async (req, res, next) => {
 // GET /api/comments/:shareCode — All comments for a quiz
 export const getComments = async (req, res, next) => {
   try {
-    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode });
+    const quiz = await Quiz.findOne({ shareCode: req.params.shareCode, teacher: req.teacher._id });
     if (!quiz) {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }

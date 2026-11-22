@@ -7,9 +7,10 @@ import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import { connectDB } from './config/db.js';
+import MongoRateLimitStore from './middleware/mongoRateLimitStore.js';
+import { getLoginAccountRateLimitKey, isRequestOriginAllowed } from './utils/requestSecurity.js';
 import quizRoutes from './routes/quizRoutes.js';
 import submissionRoutes from './routes/submissionRoutes.js';
-import commentRoutes from './routes/commentRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import classRoutes from './routes/classRoutes.js';
@@ -52,7 +53,14 @@ if (isProduction && allowedOrigins.length === 0) {
 }
 
 // Trust reverse proxy (Render, Heroku, etc.) for rate limiting and IP detection
-app.set('trust proxy', 1);
+const configuredProxyHops = process.env.TRUST_PROXY_HOPS;
+const trustedProxyHops = configuredProxyHops === undefined
+  ? (isProduction ? 1 : 0)
+  : Number(configuredProxyHops);
+if (!Number.isInteger(trustedProxyHops) || trustedProxyHops < 0 || trustedProxyHops > 10) {
+  throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 10');
+}
+app.set('trust proxy', trustedProxyHops);
 
 // Middleware
 // Security HTTP headers
@@ -87,10 +95,14 @@ app.use((req, res, next) => {
 
 // CORS alone does not block state-changing requests; validate browser origins as a CSRF defense.
 app.use((req, res, next) => {
-  const origin = req.get('origin');
-  const changesState = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);
-  if (changesState && origin && !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ success: false, message: 'Request origin is not allowed' });
+  const isAllowed = isRequestOriginAllowed({
+    method: req.method,
+    origin: req.get('origin'),
+    referer: req.get('referer'),
+    hasCookieSession: Boolean(req.cookies?.token || req.cookies?.studentToken),
+  }, allowedOrigins);
+  if (!isAllowed) {
+    return res.status(403).json({ success: false, message: 'Request origin is not allowed or could not be verified' });
   }
   next();
 });
@@ -99,6 +111,7 @@ app.use(morgan('dev'));
 
 // Rate Limiting
 const apiLimiter = rateLimit({
+  store: new MongoRateLimitStore('api'),
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 150, // Limit each IP to 150 requests per windowMs
   standardHeaders: true,
@@ -110,6 +123,7 @@ app.use(apiLimiter);
 
 // Throttle failed login attempts by client IP. Use a shared store when running multiple API instances.
 const loginLimiter = rateLimit({
+  store: new MongoRateLimitStore('auth-login'),
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 10,
   skipSuccessfulRequests: true,
@@ -118,6 +132,7 @@ const loginLimiter = rateLimit({
   message: { success: false, message: 'Too many login attempts. Please try again after 15 minutes' }
 });
 const registrationLimiter = rateLimit({
+  store: new MongoRateLimitStore('registration'),
   windowMs: 60 * 60 * 1000,
   limit: 5,
   standardHeaders: true,
@@ -141,6 +156,25 @@ app.use([
 app.use(express.json({ limit: '1mb' }));
 app.use(mongoSanitize());
 
+// Add a shared account bucket after body parsing; keep the earlier IP limit for unparsed traffic.
+const accountLoginLimiter = rateLimit({
+  store: new MongoRateLimitStore('login-account'),
+  windowMs: 15 * 60 * 1000,
+  limit: 8,
+  skipSuccessfulRequests: true,
+  keyGenerator: getLoginAccountRateLimitKey,
+  validate: { keyGeneratorIpFallback: false },
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts for this account. Please try again later' },
+});
+app.use([
+  '/api/auth/login',
+  '/auth/login',
+  '/api/students/login',
+  '/students/login',
+], accountLoginLimiter);
+
 // API Routes (mounted with /api/ and fallback without /api/ for flexible VITE_API_URL config)
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
@@ -148,8 +182,6 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/quizzes', quizRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/submissions', submissionRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/comments', commentRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/students', studentRoutes);
 app.use('/api/classes', classRoutes);

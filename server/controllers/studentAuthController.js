@@ -84,7 +84,10 @@ export const getPublicTeachers = async (req, res, next) => {
 // GET /api/students/teachers/:teacherId — Public details for direct link registration
 export const getTeacherPublicInfo = async (req, res, next) => {
   try {
-    const teacher = await Teacher.findById(req.params.teacherId).select('name subject');
+    const teacher = await Teacher.findOne({
+      _id: req.params.teacherId,
+      showInRegistrationList: { $ne: false },
+    }).select('name subject');
     if (!teacher) {
       return res.status(404).json({ success: false, message: 'Teacher not found' });
     }
@@ -97,7 +100,14 @@ export const getTeacherPublicInfo = async (req, res, next) => {
 // GET /api/students/teachers/:teacherId/classes — Public list of classes for a chosen teacher
 export const getTeacherClassesPublic = async (req, res, next) => {
   try {
-    const classes = await Class.find({ teacher: req.params.teacherId }).select('name').sort({ name: 1 });
+    const teacher = await Teacher.findOne({
+      _id: req.params.teacherId,
+      showInRegistrationList: { $ne: false },
+    }).select('_id');
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+    const classes = await Class.find({ teacher: req.params.teacherId }).select('name -_id').sort({ name: 1 });
     res.json({ success: true, data: classes });
   } catch (err) {
     next(err);
@@ -115,7 +125,7 @@ export const registerStudent = async (req, res, next) => {
       });
     }
 
-    const { name, username, password, teacherId, classId, classCode } = parseResult.data;
+    const { name, username, password, teacherId, classCode } = parseResult.data;
 
     const existing = await Student.findOne({
       username: { $regex: new RegExp(`^${escapeRegex(username)}$`, 'i') },
@@ -125,16 +135,16 @@ export const registerStudent = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'A student with this username already exists' });
     }
 
-    let teacher = teacherId ? await Teacher.findById(teacherId) : null;
+    let teacher = teacherId
+      ? await Teacher.findOne({ _id: teacherId, showInRegistrationList: { $ne: false } })
+      : null;
     if (teacherId && !teacher) {
-      return res.status(404).json({ success: false, message: 'Selected teacher does not exist' });
+      return res.status(404).json({ success: false, message: 'Selected teacher is unavailable' });
     }
 
     let resolvedClass = null;
-    if (classId || classCode) {
-      const classFilter = classId
-        ? { _id: classId }
-        : { code: classCode.trim().toUpperCase() };
+    if (classCode) {
+      const classFilter = { code: classCode.trim().toUpperCase() };
       if (teacher) classFilter.teacher = teacher._id;
       resolvedClass = await Class.findOne(classFilter).populate('teacher', 'name subject');
       if (resolvedClass && !teacher) {
@@ -322,10 +332,17 @@ export const resetStudentPassword = async (req, res, next) => {
 };
 
 // POST /api/students/logout — Clear student cookie
-export const logoutStudent = async (req, res) => {
-  res
-    .clearCookie('studentToken', getCookieOptions())
-    .json({ success: true, message: 'Logged out successfully' });
+export const logoutStudent = async (req, res, next) => {
+  try {
+    if (req.student?._id) {
+      await Student.updateOne({ _id: req.student._id }, { $inc: { sessionVersion: 1 } });
+    }
+    res
+      .clearCookie('studentToken', getCookieOptions())
+      .json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // GET /api/students/me — Student profile (Student protected)

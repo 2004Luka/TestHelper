@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/register', registerTeacher);
 router.post('/login', loginTeacher);
-router.post('/logout', logoutTeacher);
+router.post('/logout', optionalAuth, logoutTeacher);
 router.get('/session', optionalAuth, getSession);
 router.get('/me', protect, getMe);
 router.patch('/settings', protect, updateTeacherSettings);

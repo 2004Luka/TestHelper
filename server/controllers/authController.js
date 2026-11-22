@@ -11,6 +11,7 @@ const getCookieOptions = () => ({
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   path: '/',
 });
+const teacherSessionTtlMs = 24 * 60 * 60 * 1000;
 
 /**
  * Escape special regex characters to prevent ReDoS attacks.
@@ -19,18 +20,22 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const generateToken = (id) => {
-  return jwt.sign({ id, role: 'teacher' }, getJwtSecret(), { ...jwtOptions, expiresIn: '7d' });
+const generateToken = (teacher) => {
+  return jwt.sign(
+    { id: teacher._id, role: 'teacher', sessionVersion: teacher.sessionVersion || 0 },
+    getJwtSecret(),
+    { ...jwtOptions, expiresIn: '24h' }
+  );
 };
 
 // Helper function to send token in HTTP-Only cookie & JSON response
 const sendTokenResponse = (teacher, statusCode, res, message = 'Success') => {
-  const token = generateToken(teacher._id);
+  const token = generateToken(teacher);
 
   res
     .status(statusCode)
     .clearCookie('studentToken', getCookieOptions())
-    .cookie('token', token, { ...getCookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 })
+    .cookie('token', token, { ...getCookieOptions(), maxAge: teacherSessionTtlMs })
     .json({
       message,
       teacher: {
@@ -112,10 +117,17 @@ export const loginTeacher = async (req, res, next) => {
 
 // @desc Log out teacher & clear cookie
 // @route POST /api/auth/logout
-export const logoutTeacher = async (req, res) => {
-  res
-    .clearCookie('token', getCookieOptions())
-    .json({ success: true, message: 'Logged out successfully' });
+export const logoutTeacher = async (req, res, next) => {
+  try {
+    if (req.teacher?._id) {
+      await Teacher.updateOne({ _id: req.teacher._id }, { $inc: { sessionVersion: 1 } });
+    }
+    res
+      .clearCookie('token', getCookieOptions())
+      .json({ success: true, message: 'Logged out successfully' });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // @desc Get logged-in teacher profile

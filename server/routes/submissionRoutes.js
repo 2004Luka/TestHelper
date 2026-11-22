@@ -7,11 +7,13 @@ import {
   deleteSubmission,
 } from '../controllers/submissionController.js';
 import { protect, optionalAuth } from '../middleware/authMiddleware.js';
+import MongoRateLimitStore from '../middleware/mongoRateLimitStore.js';
 
 const router = Router();
 
 // Anti-abuse limiter on public quiz submissions: max 10 per 5 minutes per IP
 const submitLimiter = rateLimit({
+  store: new MongoRateLimitStore('quiz-submission'),
   windowMs: 5 * 60 * 1000,
   max: 10,
   standardHeaders: true,

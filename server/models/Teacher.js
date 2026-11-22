@@ -18,6 +18,7 @@ const teacherSchema = new mongoose.Schema(
       required: [true, 'Password is required'],
       select: false,
     },
+    sessionVersion: { type: Number, default: 0 },
     showInRegistrationList: {
       type: Boolean,
       default: true,

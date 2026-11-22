@@ -65,14 +65,6 @@ export const studentRegisterSchema = z.object({
     .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
       message: 'Invalid teacher selection',
     }),
-  classId: z
-    .string()
-    .trim()
-    .optional()
-    .nullable()
-    .refine((val) => !val || mongoose.Types.ObjectId.isValid(val), {
-      message: 'Invalid class ID',
-    }),
   classCode: z
     .string()
     .trim()

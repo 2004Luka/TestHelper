@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import Discussion from '../components/Discussion';
 import QuizPreview from '../components/QuizPreview';
 import QuizAccessControl from '../components/QuizAccessControl';
 import { useLanguage } from '../context/LanguageContext';
@@ -531,9 +530,6 @@ export default function QuizDetail() {
 
       {/* Quiz Access & Student Permissions Control */}
       <QuizAccessControl shareCode={shareCode} />
-
-      {/* Discussion */}
-      <Discussion shareCode={shareCode} currentUser="Teacher" currentRole="teacher" />
 
       {/* SUBMISSION MISTAKES REVIEW MODAL */}
       {selectedSubmission && (

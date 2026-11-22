@@ -20,6 +20,7 @@ TESTGENERATOR/
 ├── AGENTS.md                       # Root instructions loaded by AI agents every turn
 ├── STRUCTURE.md                    # Fast AI structure map & zero-credit dispatch table
 ├── client/                         # Frontend SPA (Vite + React 18 + Vanilla CSS)
+│   ├── .env.example                # Optional local API URL template (SAFE TO READ)
 │   ├── public/
 │   │   └── quizzup-landing-bg.avif # Landing page background image
 │   ├── src/
@@ -72,7 +73,8 @@ TESTGENERATOR/
 │   │   └── tutorDashboardController.js # Private tutor workspace CRUD
 │   ├── middleware/
 │   │   ├── authMiddleware.js       # JWT verification & request auth guard
-│   │   └── errorHandler.js         # Global error handling middleware
+│   │   ├── errorHandler.js         # Global error handling middleware
+│   │   └── mongoRateLimitStore.js  # MongoDB-backed shared rate limit counters
 │   ├── models/
 │   │   ├── Class.js                # Class / group Mongoose schema
 │   │   ├── Comment.js              # Comment/Discussion Mongoose schema
@@ -89,10 +91,13 @@ TESTGENERATOR/
 │   │   ├── studentRoutes.js        # /api/students/* route definitions
 │   │   ├── submissionRoutes.js     # /api/submissions/* route definitions
 │   │   └── tutorDashboardRoutes.js # /api/tutor-dashboard/* protected routes
+│   ├── test/
+│   │   └── security.test.js        # Node test-runner security regression cases
 │   ├── uploads/                    # Temporary file upload storage
 │   ├── utils/
 │   │   ├── authValidators.js       # Zod schemas for teacher & student registration and login
 │   │   ├── quizAccess.js           # Priority hierarchy quiz access evaluation utility
+│   │   ├── requestSecurity.js      # Request origin checks & account login keys
 │   │   └── wordParser.js           # .docx/.doc parsing utility
 │   ├── server.js                   # Express server bootstrap & middleware pipeline
 │   ├── .env.example                # Environment variable template (SAFE TO READ)
@@ -111,12 +116,14 @@ TESTGENERATOR/
 | **Internationalization (i18n)** | `client/src/translations.js`, `client/src/context/LanguageContext.jsx` | Relevant page/component |
 | **Authentication (Frontend)** | `client/src/context/AuthContext.jsx`, `client/src/pages/Login.jsx` | `client/src/components/ProtectedRoute.jsx` |
 | **Authentication (Backend)** | `server/controllers/authController.js`, `server/middleware/authMiddleware.js` | `server/models/Teacher.js` |
+| **Security Helpers & Tests** | `server/utils/requestSecurity.js`, `server/test/security.test.js` | Run with `npm test` from `server/` |
 | **Quiz CRUD** | `server/controllers/quizController.js`, `server/models/Quiz.js` | `client/src/pages/CreateQuiz.jsx`, `QuizDetail.jsx` |
 | **Student Submissions** | `server/controllers/submissionController.js`, `server/models/Submission.js` | `client/src/pages/TakeQuiz.jsx` |
-| **Comments / Discussion** | `server/controllers/commentController.js`, `server/models/Comment.js` | `client/src/components/Discussion.jsx` |
+| **Legacy Quiz Comments (disabled)** | `server/controllers/commentController.js`, `server/models/Comment.js` | Routes and quiz UI are unmounted |
+| **Shared API Rate Limiting** | `server/middleware/mongoRateLimitStore.js`, `server/server.js` | MongoDB TTL cleanup |
 | **File Uploads & Parsing** | `server/utils/wordParser.js`, `client/src/components/FileUpload.jsx` | `server/uploads/` |
 | **API Client (Frontend)** | `client/src/api/client.js` | — |
 | **Tutor Finance & Student Management** | `client/src/pages/TutorDashboard.jsx`, `server/controllers/tutorDashboardController.js` | `server/models/TutorWorkspace.js`, `server/routes/tutorDashboardRoutes.js` |
 | **Student Billing Portal** | `client/src/pages/StudentBilling.jsx`, `server/controllers/studentAuthController.js` | Student-authenticated read access |
-| **Environment Variables** | `server/.env.example` (NEVER open `.env`) | — |
+| **Environment Variables** | `client/.env.example`, `server/.env.example` (never open real `.env` files) | — |
 | **AI Rules & Behavior** | `.agents/rules/*.md`, `AGENTS.md` | `.agents/rules/learned_preferences.md` |
